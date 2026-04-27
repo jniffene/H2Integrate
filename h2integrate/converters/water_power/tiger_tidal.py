@@ -21,7 +21,7 @@ class TigerTidalPerformanceConfig(BaseConfig):
         device_rating_kw (float): Rated power of the MHK device [kW]
         num_devices (int): Number of MHK tidal devices in the system
         rotor_radius (float): Rotor radius of the tidal energy device [m]
-        C_pwr (float): Coefficient of power for tidal energy device
+        power_coefficient (float): Coefficient of power for tidal energy device
 
         Be sure to update this with all of the new parameters you want to be
         able to set from the `tech_config.yaml`
@@ -36,7 +36,7 @@ class TigerTidalPerformanceConfig(BaseConfig):
     rotor_radius: float = field(validator=gt_zero)
 
     # Optional parameter TODO how to set it as optional?
-    C_pwr: float = field(default= 0.41, validator=gt_zero)
+    power_coefficient: float = field(default= 0.41, validator=gt_zero)
 
 
 ### Tiger tidal performance model
@@ -45,7 +45,6 @@ class TigerTidalPerformanceModel(PerformanceModelBaseClass):
     It takes tidal parameters as input and outputs power generation data.
     """
 
-    # TODO - check
     # This is considered an hourly timestep
     _time_step_bounds = (
         3600,
@@ -88,49 +87,49 @@ class TigerTidalPerformanceModel(PerformanceModelBaseClass):
             desc="Number of tidal devices in the system",
         )
         self.add_input(
-            "device_rating_kw",
+            "device_rating",
             val=self.config.device_rating_kw,
             units="kW",
             desc="Rated power of the tidal energy device",
         )
         self.add_input(
-            "C_pwr",
-            val=self.config.C_pwr,
+            "power_coefficient",
+            val=self.config.power_coefficient,
             units="unitless",
             desc="Coefficient of power of the tidal energy device",
         )
 
         ### Can add other outputs if you want them
-        self.add_output(
-            "power_curve",
-            units="kW",
-            desc="Power curve of the tidal energy device as a function of tidal velocity",
-        )
-        self.add_output(
-            "electricity_out_kw",
-            units = "kW",
-            desc="Hourly output electricity (W)"
-        )
-        self.add_output(
-            "rated_electricity_production",
-            units = "kW",
-            desc="Rated electricity production of system"
-        )
-        self.add_output(
-            "total_electricity_produced",
-            units = "kW*h",
-            desc="Total energy produced"
-        )
-        self.add_output(
-            "annual_electricity_produced",
-            units = "kW*h/yr",
-            desc="Annual electricity produced"
-        )
-        self.add_output(
-            "capacity_factor",
-            units = "unitless", 
-            desc="Capacity factor of array"
-        )
+        # self.add_output(
+        #     "power_curve",
+        #     units="kW",
+        #     desc="Power curve of the tidal energy device as a function of tidal velocity",
+        # )
+        # self.add_output(
+        #     "electricity_out_kw",
+        #     units = "kW",
+        #     desc="Hourly output electricity (W)"
+        # )
+        # self.add_output(
+        #     "rated_electricity_production",
+        #     units = "kW",
+        #     desc="Rated electricity production of system"
+        # )
+        # self.add_output(
+        #     "total_electricity_produced",
+        #     units = "kW*h",
+        #     desc="Total energy produced"
+        # )
+        # self.add_output(
+        #     "annual_electricity_produced",
+        #     units = "kW*h/yr",
+        #     desc="Annual electricity produced"
+        # )
+        # self.add_output(
+        #     "capacity_factor",
+        #     units = "unitless", 
+        #     desc="Capacity factor of array"
+        # )
 
 
     def compute(self, inputs, outputs):
@@ -139,8 +138,8 @@ class TigerTidalPerformanceModel(PerformanceModelBaseClass):
 
         # simplify inputs
         R_r = inputs["rotor_radius"][0]
-        P_t_kw = inputs["device_rating_kw"][0]
-        C_pwr = inputs["C_pwr"][0]
+        P_t_kw = inputs["device_rating"][0]
+        power_coefficient = inputs["power_coefficient"][0]
         N_t = inputs["num_devices"][0]
 
         # calculate system capacity
@@ -157,9 +156,12 @@ class TigerTidalPerformanceModel(PerformanceModelBaseClass):
 
         # calculate power production
         pwr_kw = np.zeros(len(velocity_mPs))
+        max_pwr_kw = np.zeros(len(velocity_mPs))
         for i in range(len(velocity_mPs)):
+            max_pwr_kw[i] = system_capacity_kw
+            
             if velocity_mPs[i] >= cut_in_velocity and velocity_mPs[i] <= cut_out_velocity:
-                pwr_kw[i] = N_t * 0.5 * density_seawater * C_pwr * (np.pi * R_r**2) * velocity_mPs[i]**3/1000
+                pwr_kw[i] = N_t * 0.5 * density_seawater * power_coefficient * (np.pi * R_r**2) * velocity_mPs[i]**3/1000
                 
                 if pwr_kw[i] > system_capacity_kw:
                     pwr_kw[i] = system_capacity_kw
@@ -170,23 +172,24 @@ class TigerTidalPerformanceModel(PerformanceModelBaseClass):
         pwr_curve_pwr_kW = np.zeros(len(pwr_curve_vel)) # power values in power curve
         for i in range(len(pwr_curve_vel)):
             if pwr_curve_vel[i] >= cut_in_velocity:
-                pwr_curve_pwr_kW[i] = 0.5 * density_seawater * C_pwr * (np.pi * R_r**2) * pwr_curve_vel[i]**3/1000
+                pwr_curve_pwr_kW[i] = 0.5 * density_seawater * power_coefficient * (np.pi * R_r**2) * pwr_curve_vel[i]**3/1000
 
                 if pwr_curve_pwr_kW[i] > P_t_kw:
                     pwr_curve_pwr_kW[i] = P_t_kw
 
+        
 
         ### outputs from the model
-        outputs["electricity_out_kw"] = pwr_kw  # Add timeseries of the power output here
+        outputs["electricity_out"] = pwr_kw  # Add timeseries of the power output here
         outputs["rated_electricity_production"] = system_capacity_kw
-        outputs["power_curve"] = [pwr_curve_vel, pwr_curve_pwr_kW] # TODO check if format is appropriate
+        # outputs["power_curve"] = [pwr_curve_vel, pwr_curve_pwr_kW] # TODO check if format is appropriate
 
-        outputs["total_electricity_produced"] = outputs["electricity_out_kw"].sum() * (self.dt / 3600)
-        outputs["annual_electricity_produced"] = 0 # TODO (What's the difference between this and total electricity produced?)
-
-        outputs["capacity_factor"] = (
-            self.system_model.Outputs.capacity_factor / 100 # TODO check if this needs to be modified
-        )  # divide by 100 to make it unitless
+        outputs["total_electricity_produced"] = outputs["electricity_out"].sum() * (self.dt / 3600)
+        outputs["annual_electricity_produced"] = outputs["electricity_out"].sum() * (self.dt / 3600)
+        
+        # calculate capacity factor
+        max_energy_kWh = sum(max_pwr_kw) * (self.dt / 3600)
+        outputs["capacity_factor"] = outputs["total_electricity_produced"] / max_energy_kWh
 
 
 @define(kw_only=True)
@@ -202,7 +205,7 @@ class TigerTidalCostConfig(CostModelBaseConfig):
     advanced_blade_mats (bool): If true applies cost reductions from using advanced blade materials
     cost_reduction_of_advanced_blade_mats (float): Reduction in blade capital cost if advanced blade materials are considered
 
-    device_rating_kw (float): Rated power of the MHK device [kW]
+    device_rating (float): Rated power of the MHK device [kW]
     num_devices (int): Number of MHK tidal devices in the system
     rotor_radius (float): Rotor radius of the tidal energy device [m]
 
@@ -214,7 +217,12 @@ class TigerTidalCostConfig(CostModelBaseConfig):
     mod_alpha (float): Factor applied to alter the calculated value of constant alpha
     mod_beta (float): Factor applied to alter the calculated value of constant beta
     mod_gamma (float): Factor applied to alter the calculated value of constant gamma
-    
+    a_cpx (float): Coefficient applied to exponential decay curve fit for CAPEX/kW vs number of units in an array
+    b_cpx (float): Coefficient applied to exponential decay curve fit for CAPEX/kW vs number of units in an array
+    c_cpx (float): Coefficient applied to exponential decay curve fit for CAPEX/kW vs number of units in an array
+    a_opx (float): Coefficient applied to exponential decay curve fit for OPEX/kW/yr vs number of units in an array
+    b_opx (float): Coefficient applied to exponential decay curve fit for OPEX/kW/yr vs number of units in an array
+    c_opx (float): Coefficient applied to exponential decay curve fit for OPEX/kW/yr vs number of units in an array
     """
 
     ##### ADD COST MODEL INPUTS HERE
@@ -227,7 +235,7 @@ class TigerTidalCostConfig(CostModelBaseConfig):
     advanced_blade_mats: bool = field(default=False)
     cost_reduction_of_advanced_blade_mats: float = field(default = 0.5, validator=gt_zero)
     
-    # unclear if these are redundant
+    # main inputs
     device_rating_kw: float = field(validator=gt_zero)
     num_devices: int = field(validator=gt_zero)
     rotor_radius: float = field(validator=gt_zero)
@@ -239,6 +247,12 @@ class TigerTidalCostConfig(CostModelBaseConfig):
     mod_alpha: float = field(default=1, validator=gt_zero)
     mod_beta: float = field(default=1, validator=gt_zero)
     mod_gamma: float = field(default=1, validator=gt_zero)
+    a_cpx: float = field(default = 0.4743, validator=gt_zero)
+    b_cpx: float = field(default = -0.0354, validator=gt_zero)
+    c_cpx: float = field(default = 0.5884, validator=gt_zero)
+    a_opx: float = field(default = 0.6703, validator=gt_zero)
+    b_opx: float = field(default = -0.0259, validator=gt_zero)
+    c_opx: float = field(default = 0.3957, validator=gt_zero)
 
 
 class TigerTidalCostModel(CostModelBaseClass):
@@ -268,7 +282,7 @@ class TigerTidalCostModel(CostModelBaseClass):
             desc="Number of tidal devices in the system",
         )
         self.add_input(
-            "device_rating_kw",
+            "device_rating",
             val=self.config.device_rating_kw,
             units="kW",
             desc="Rated power of the tidal energy device",
@@ -343,18 +357,54 @@ class TigerTidalCostModel(CostModelBaseClass):
             units="unitless",
             desc="Factor applied to alter the calculated value of constant gamma"
         )
+        self.add_input(
+            "a_cpx",
+            val=self.config.a_cpx,
+            units="unitless",
+            desc="Coefficient applied for exponential decay curve fit for CAPEX/kW vs number of units in an array"
+        )
+        self.add_input(
+            "b_cpx",
+            val=self.config.b_cpx,
+            units="unitless",
+            desc="Coefficient applied for exponential decay curve fit for CAPEX/kW vs number of units in an array"
+        )
+        self.add_input(
+            "c_cpx",
+            val=self.config.c_cpx,
+            units="unitless",
+            desc="Coefficient applied for exponential decay curve fit for CAPEX/kW vs number of units in an array"
+        )
+        self.add_input(
+            "a_opx",
+            val=self.config.a_opx,
+            units="unitless",
+            desc="Coefficient applied for exponential decay curve fit for OPEX/kW/yr vs number of units in an array"
+        )
+        self.add_input(
+            "b_opx",
+            val=self.config.b_opx,
+            units="unitless",
+            desc="Coefficient applied for exponential decay curve fit for OPEX/kW/yr vs number of units in an array"
+        )
+        self.add_input(
+            "c_opx",
+            val=self.config.c_opx,
+            units="unitless",
+            desc="Coefficient applied for exponential decay curve fit for OPEX/kW/yr vs number of units in an array"
+        )
 
         # define outputs
-        self.add_output(
-            "CapEx",
-            units = "$",
-            desc="Total capital costs of system"
-        )
-        self.add_output(
-            "OpEx",
-            units = "$/yr",
-            desc="Total operational costs of system"
-        )
+        # self.add_output(
+        #     "CapEx",
+        #     units = "$",
+        #     desc="Total capital costs of system"
+        # )
+        # self.add_output(
+        #     "OpEx",
+        #     units = "$/yr",
+        #     desc="Total operational costs of system"
+        # )
         self.add_output(
             "CapEx_per_kW",
             units = "$/kW",
@@ -387,14 +437,14 @@ class TigerTidalCostModel(CostModelBaseClass):
         ##### Add tiger cost model calculations here #####
         # Simplify inputs
         R_r = inputs["rotor_radius"][0]
-        P_t_kw = inputs["device_rating_kw"][0]
+        P_t_kw = inputs["device_rating"][0]
         N_t = inputs["num_devices"][0]
 
         # TODO unclear if this format applies to booleans
-        advBlades = inputs["advanced_blade_mats"][0]
-        subSeaHub = inputs["sub_sea_hubs"][0]
-        stdWetM8s = inputs["standard_wet_mates"][0]
-        pldFndtns = inputs["piled_foundations"][0]
+        advBlades = inputs["advanced_blade_mats"]
+        subSeaHub = inputs["sub_sea_hubs"]
+        stdWetM8s = inputs["standard_wet_mates"]
+        pldFndtns = inputs["piled_foundations"]
 
         alpha_exp = inputs["alpha_exp"][0]
         beta_exp = inputs["beta_exp"][0]
@@ -475,21 +525,10 @@ class TigerTidalCostModel(CostModelBaseClass):
         # CAPEX and OPEX per system capacity for initial 4 unit array size
         X_cpxF4 = CPX_f4/(P_t_kw*N_i)
         Y_opxF4 = OPX_f4/(P_t_kw*N_i)
-
-        ### Adjust costs for varying array sizes
-        # Coefficients from power curve fit for the 4 unit array 
-        # (assuming that compared to 50 units, 100 units have a 10% cost reduction in CAPEX and a 23% cost reduction in OPEX like the RM1)
-        # CAPEX coefficients 
-        a_cpx = 1.245
-        b_cpx = -0.1582
-
-        # OPEX coefficients
-        a_opx = 1.3906
-        b_opx = -0.2357
-
-        # Calculate CAPEX and OPEX per system capacity for new array size
-        X_cpxF = X_cpxF4*a_cpx*N_t**b_cpx
-        Y_opxF = Y_opxF4*a_opx*N_t**b_opx
+        
+        # Calculate CAPEX and OPEX per system capacity for new array size based on exponential decay curve fit
+        X_cpxF = X_cpxF4 * (inputs["a_cpx"][0] * np.exp(N_t*inputs["b_cpx"][0]) + inputs["c_cpx"][0])
+        Y_opxF = Y_opxF4 * (inputs["a_opx"][0] * np.exp(N_t*inputs["b_opx"][0]) + inputs["c_opx"][0])
 
         # Calculate final CAPEX and OPEX for new array size
         CPX_f = X_cpxF * P_t_kw * N_t
