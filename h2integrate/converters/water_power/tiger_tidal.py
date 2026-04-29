@@ -100,11 +100,12 @@ class TigerTidalPerformanceModel(PerformanceModelBaseClass):
         )
 
         ### Can add other outputs if you want them
-        # self.add_output(
-        #     "power_curve",
-        #     units="kW",
-        #     desc="Power curve of the tidal energy device as a function of tidal velocity",
-        # )
+        self.add_output(
+            "power_curve",
+            units="kW",
+            shape= [2, 41],
+            desc="Power curve of the tidal energy device as a function of tidal velocity",
+        )
         # self.add_output(
         #     "electricity_out_kw",
         #     units = "kW",
@@ -182,7 +183,7 @@ class TigerTidalPerformanceModel(PerformanceModelBaseClass):
         ### outputs from the model
         outputs["electricity_out"] = pwr_kw  # Add timeseries of the power output here
         outputs["rated_electricity_production"] = system_capacity_kw
-        # outputs["power_curve"] = [pwr_curve_vel, pwr_curve_pwr_kW] # TODO check if format is appropriate
+        outputs["power_curve"] = [pwr_curve_vel, pwr_curve_pwr_kW] # TODO check if format is appropriate
 
         outputs["total_electricity_produced"] = outputs["electricity_out"].sum() * (self.dt / 3600)
         outputs["annual_electricity_produced"] = outputs["electricity_out"].sum() * (self.dt / 3600)
@@ -248,10 +249,10 @@ class TigerTidalCostConfig(CostModelBaseConfig):
     mod_beta: float = field(default=1, validator=gt_zero)
     mod_gamma: float = field(default=1, validator=gt_zero)
     a_cpx: float = field(default = 0.4743, validator=gt_zero)
-    b_cpx: float = field(default = -0.0354, validator=gt_zero)
+    b_cpx: float = field(default = -0.0354)
     c_cpx: float = field(default = 0.5884, validator=gt_zero)
     a_opx: float = field(default = 0.6703, validator=gt_zero)
-    b_opx: float = field(default = -0.0259, validator=gt_zero)
+    b_opx: float = field(default = -0.0259)
     c_opx: float = field(default = 0.3957, validator=gt_zero)
 
 
@@ -261,11 +262,12 @@ class TigerTidalCostModel(CostModelBaseClass):
     """
 
     def setup(self):
-        super().setup()
+        
         self.config = TigerTidalCostConfig.from_dict(
             merge_shared_inputs(self.options["tech_config"]["model_inputs"], "cost"),
             additional_cls_name=self.__class__.__name__,
         )
+        super().setup()
 
         ##### Add cost model inputs here #####
         # May be redundant
@@ -407,12 +409,12 @@ class TigerTidalCostModel(CostModelBaseClass):
         # )
         self.add_output(
             "CapEx_per_kW",
-            units = "$/kW",
+            units = "USD/kW",
             desc="Capital costs per kW of capacity of system"
         )
         self.add_output(
             "OpEx_per_kW",
-            units = "$/kW/yr",
+            units = "USD/kW/year",
             desc="Operational costs per kW of capacity of system"
         )
         self.add_output(
@@ -433,7 +435,7 @@ class TigerTidalCostModel(CostModelBaseClass):
 
 
 
-    def compute(self, inputs, outputs):
+    def compute(self, inputs, outputs, discrete_inputs, discrete_outputs):
         ##### Add tiger cost model calculations here #####
         # Simplify inputs
         R_r = inputs["rotor_radius"][0]

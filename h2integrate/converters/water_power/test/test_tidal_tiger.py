@@ -8,7 +8,7 @@ from h2integrate.resource.river import RiverResource
 from h2integrate.converters.water_power.tiger_tidal import (
     TigerTidalPerformanceModel, TigerTidalCostModel
 )
-
+import math
 
 @fixture
 def plant_config():
@@ -37,6 +37,19 @@ def performance_tech_config():
     }
     return performance_tech_config
 
+@fixture
+def performance_tech_config_sine():
+    performance_tech_config_sine = {
+        "model_inputs": {
+            "performance_parameters": {
+                "device_rating_kw": 3000,
+                "num_devices": 50,
+                "rotor_radius": 25,
+            }
+        }
+    }
+    return performance_tech_config_sine
+
 
 @fixture
 def cost_tech_config():
@@ -54,6 +67,23 @@ def cost_tech_config():
         }
     }
     return cost_tech_config
+
+@fixture
+def cost_tech_config_adv():
+    cost_tech_config_adv = {
+        "model_inputs": {
+            "cost_parameters": {
+                "device_rating_kw": 3000,
+                "num_devices": 50,
+                "rotor_radius": 25,
+                "sub_sea_hubs":        True,
+                "standard_wet_mates":  True,
+                "piled_foundations":   True,
+                "advanced_blade_mats": True,
+            }
+        }
+    }
+    return cost_tech_config_adv
 
 
 # May be unnecessary
@@ -171,5 +201,129 @@ def test_tidal_power_performance_outputs(performance_tech_config, plant_config, 
     with subtests.test("replacement_schedule value"):
         assert np.all(prob.get_val("comp.replacement_schedule", units="unitless") == 0)
     
-
+    # Performance specific tests given specific input values
+    with subtests.test("annual energy production given constant max input velocity"):
+        assert pytest.approx(prob.get_val("annual_electricity_produced", units="kW*h/year"), rel=1e-6) == 70080000
+    with subtests.test("total energy production given constant max input velocity"):
+        assert pytest.approx(prob.get_val("total_electricity_produced", units="kW*h"), rel=1e-6) == 70080000
+    with subtests.test("capacity factor given constant max input velocity"):
+        assert pytest.approx(prob.get_val("capacity_factor", units="unitless"), rel=1e-6) == 1
     
+@pytest.mark.unit # marks as a unit type test
+def test_tidal_cost_outputs(cost_tech_config, plant_config, subtests): # can swap between configs here
+    prob = om.Problem()
+
+    cost = TigerTidalCostModel(
+        plant_config=plant_config,
+        tech_config=cost_tech_config,
+        driver_config={},
+    )
+    prob.model.add_subsystem("cost", cost, promotes=["*"])
+    prob.setup()
+    prob.run_model()
+
+    with subtests.test("baseline CAPEX"):
+        assert (
+            pytest.approx(prob.get_val("CapEx", units="USD"), rel=1e-6) == 89019125.81
+        )
+    with subtests.test("baseline OPEX"):
+        assert (
+            pytest.approx(prob.get_val("OpEx", units="USD/year"), rel=1e-6) == 2673128.34
+        )
+    with subtests.test("baseline CAPEX/kW"):
+        assert (
+            pytest.approx(prob.get_val("CapEx_per_kW", units="USD/kW"), rel=1e-6) == 11127.39
+        )
+    with subtests.test("baseline OPEX/kW"):
+        assert (
+            pytest.approx(prob.get_val("OpEx_per_kW", units="USD/kW/year"), rel=1e-5) == 334.14
+        )
+    with subtests.test("baseline alpha"):
+        assert (
+            pytest.approx(prob.get_val("alpha", units="unitless"), rel=1e-6) == 3729.657972294933
+        )
+    with subtests.test("baseline beta"):
+        assert (
+            pytest.approx(prob.get_val("beta", units="unitless"), rel=1e-6) == 17955.96594168595
+        )
+    with subtests.test("baseline gamma"):
+        assert (
+            pytest.approx(prob.get_val("gamma", units="unitless"), rel=1e-6) == 144.64488392639888
+        )
+    
+    
+    
+@pytest.mark.unit # marks as a unit type test
+def test_tidal_adv_cost_outputs(cost_tech_config_adv, plant_config, subtests): # can swap between configs here
+    prob = om.Problem()
+
+    cost = TigerTidalCostModel(
+        plant_config=plant_config,
+        tech_config=cost_tech_config_adv,
+        driver_config={},
+    )
+    prob.model.add_subsystem("cost", cost, promotes=["*"])
+    prob.setup()
+    prob.run_model()
+
+    with subtests.test("advanced CAPEX"):
+        assert (
+            pytest.approx(prob.get_val("CapEx", units="USD"), rel=1e-6) == 905499238.45
+        )
+    with subtests.test("advanced OPEX"):
+        assert (
+            pytest.approx(prob.get_val("OpEx", units="USD/year"), rel=1e-6) == 17536484.0
+        )
+    with subtests.test("advanced CAPEX/kW"):
+        assert (
+            pytest.approx(prob.get_val("CapEx_per_kW", units="USD/kW"), rel=1e-6) == 6036.66
+        )
+    with subtests.test("advanced OPEX/kW"):
+        assert (
+            pytest.approx(prob.get_val("OpEx_per_kW", units="USD/kW/year"), rel=1e-5) == 116.91
+        )
+    with subtests.test("advanced alpha"):
+        assert (
+            pytest.approx(prob.get_val("alpha", units="unitless"), rel=1e-6) == 3729.657972294933
+        )
+    with subtests.test("advanced beta"):
+        assert (
+            pytest.approx(prob.get_val("beta", units="unitless"), rel=1e-6) == 17955.96594168595
+        )
+    with subtests.test("advanced gamma"):
+        assert (
+            pytest.approx(prob.get_val("gamma", units="unitless"), rel=1e-6) == 144.64488392639888
+        )
+
+
+@pytest.mark.unit # marks as a unit type test
+def test_tidal_sine_power_performance_outputs(performance_tech_config_sine, plant_config, subtests): # can swap between configs here
+    prob = om.Problem()
+
+    # START HERE (comp = performance)
+    comp = TigerTidalPerformanceModel(
+        plant_config=plant_config,
+        tech_config=performance_tech_config_sine,
+        driver_config={},
+    )
+    prob.model.add_subsystem("comp", comp, promotes=["*"])
+    prob.setup()
+    # add velocity input
+    hours = 24*365
+    vel_t = np.zeros(hours)
+    Amp = (4+0.1)/2
+    periodT = 24
+    movUp = Amp
+    movSide = -1*np.pi/2
+    for i in range(len(vel_t)):
+        vel_t[i] = Amp*math.sin(2*np.pi/periodT*(i+1) + movSide) + movUp
+
+    prob.set_val("tidal_velocity", vel_t, units="m/s") # sine wave of velocity with wave height of cut out velocity + 0.1
+    prob.run_model()    
+
+    with subtests.test("annual energy production given sine velocity"):
+        assert pytest.approx(prob.get_val("annual_electricity_produced", units="kW*h/year"), rel=1e-6) == 619660205.362
+    with subtests.test("total energy production given sine velocity"):
+        assert pytest.approx(prob.get_val("total_electricity_produced", units="kW*h"), rel=1e-6) == 619660205.362
+    with subtests.test("capacity factor given sine velocity"):
+        assert pytest.approx(prob.get_val("capacity_factor", units="unitless"), rel=1e-6) == 0.47158311
