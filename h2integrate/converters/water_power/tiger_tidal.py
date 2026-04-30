@@ -260,6 +260,11 @@ class TigerTidalCostModel(CostModelBaseClass):
     """An OpenMDAO component for the Tiger tidal cost model.
     It takes tidal device parameters as input and outputs cost data.
     """
+    # This is considered an hourly timestep
+    _time_step_bounds = (
+        3600,
+        3600,
+    )  # (min, max) time step lengths (in seconds) compatible with this model
 
     def setup(self):
         

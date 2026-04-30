@@ -172,7 +172,9 @@ from h2integrate.control.control_rules.converters.generic_converter_min_operatin
 from h2integrate.control.control_strategies.storage.demand_openloop_storage_controller import (
     DemandOpenLoopStorageController,
 )
-
+from h2integrate.converters.water_power.tiger_tidal import (
+    TigerTidalPerformanceModel, TigerTidalCostModel
+)
 
 supported_models = {
     # Resources
@@ -201,6 +203,8 @@ supported_models = {
     "ATBResComPVCostModel": ATBResComPVCostModel,
     "PySAMTidalPerformanceModel": PySAMTidalPerformanceModel,
     "PySAMMarineCostModel": PySAMMarineCostModel,
+    "TigerTidalPerformanceModel": TigerTidalPerformanceModel,
+    "TigerTidalCostModel":TigerTidalCostModel,
     "RunOfRiverHydroPerformanceModel": RunOfRiverHydroPerformanceModel,
     "RunOfRiverHydroCostModel": RunOfRiverHydroCostModel,
     "ECOElectrolyzerPerformanceModel": ECOElectrolyzerPerformanceModel,
