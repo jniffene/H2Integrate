@@ -2,12 +2,34 @@ from h2integrate.core.dict_utils import update_defaults
 from h2integrate.core.file_utils import load_yaml, check_file_format_for_csv_generator
 from h2integrate.core.h2integrate_model import H2IntegrateModel
 import numpy as np
+import pandas as pd
 
 model = H2IntegrateModel("input_config.yaml")
 model.setup()
 hours = 24*365
-v = 4 * np.ones(hours)
-model.prob.set_val("tidal.tidal_velocity", v, units="m/s")
+# v = 4 * np.ones(hours)
+# model.prob.set_val("tidal.tidal_velocity", v, units="m/s")
+
+vel_t = np.zeros(hours)
+time = np.zeros(hours)
+# Amp = (4)/2
+# # periodT = 24
+# periodT = 12
+# # movUp = Amp
+# movUp = 0
+# # movSide = -1*np.pi/2
+# movSide = 0
+# for i in range(len(vel_t)):
+#     # vel_t[i] = Amp*math.sin(2*np.pi/periodT*(i+1) + movSide) + movUp
+#     vel_t[i] = abs(Amp*math.sin(2*np.pi/periodT*(i+1) + movSide) + movUp)
+#     time[i] = i+1
+
+df = pd.read_csv('AK_cook_inlet_tidal_resource_2005.csv', usecols=['Mean Current Speed (m/s)'])
+vel_t = df.values.tolist()
+for i in range(len(vel_t)):
+    time[i] = i+1
+
+model.prob.set_val("tidal.tidal_velocity", vel_t, units="m/s")
 model.run()
 model.post_process()
 # Create an H2I model
