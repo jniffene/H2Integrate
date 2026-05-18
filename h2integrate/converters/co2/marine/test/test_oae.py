@@ -14,6 +14,9 @@ def tech_config():
                 "number_ed_min": 1,
                 "number_ed_max": 10,
                 "max_ed_system_flow_rate_m3s": 0.0324,  # m^3/s
+                "max_ed_system_power_w": 350*10**4, # W
+                "ed_acid_concentration": 0.49, # M
+                "ed_base_concentration": 0.54, # M
                 "frac_base_flow": 0.5,
                 "assumed_CDR_rate": 0.8,  # mol CO2/mol NaOH
                 "use_storage_tanks": True,

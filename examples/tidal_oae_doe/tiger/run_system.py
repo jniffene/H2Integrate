@@ -6,12 +6,19 @@ import pandas as pd
 
 model = H2IntegrateModel("input_config.yaml")
 model.setup()
-hours = 24*365
-# v = 4 * np.ones(hours)
-# model.prob.set_val("tidal.tidal_velocity", v, units="m/s")
 
-vel_t = np.zeros(hours)
-time = np.zeros(hours)
+# model.model.set_val("oae.max_ed_system_flow_rate", 0.324, units = "m**3/s")
+# model.model.set_val("oae.max_ed_system_power", 35*10**6, units = "W")
+# model.model.set_val("tidal.num_devices", 50, units="unitless")
+
+hours = 24*365
+v = 4 * np.ones(hours)
+model.prob.set_val("tidal.tidal_velocity", v, units="m/s")
+
+
+# vel_t = np.zeros(hours)
+# time = np.zeros(hours)
+
 # Amp = (4)/2
 # # periodT = 24
 # periodT = 12
@@ -24,12 +31,12 @@ time = np.zeros(hours)
 #     vel_t[i] = abs(Amp*math.sin(2*np.pi/periodT*(i+1) + movSide) + movUp)
 #     time[i] = i+1
 
-df = pd.read_csv('AK_cook_inlet_tidal_resource_2005.csv', usecols=['Mean Current Speed (m/s)'])
-vel_t = df.values.tolist()
-for i in range(len(vel_t)):
-    time[i] = i+1
+# df = pd.read_csv('AK_cook_inlet_tidal_resource_2005.csv', usecols=['Mean Current Speed (m/s)'])
+# vel_t = df.values.tolist()
+# for i in range(len(vel_t)):
+#     time[i] = i+1
 
-model.prob.set_val("tidal.tidal_velocity", vel_t, units="m/s")
+# model.prob.set_val("tidal.tidal_velocity", vel_t, units="m/s")
 model.run()
 model.post_process()
 # Create an H2I model

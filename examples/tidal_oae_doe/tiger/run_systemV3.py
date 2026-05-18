@@ -32,7 +32,7 @@ model.prob.set_val("tidal.tidal_velocity", vel_t, units="m/s")
 
 # Vary the rotor radius and capacity and determine the LCOE and Breakeven Carbon Credit Cost
 r_start = 10
-r_end = 25
+r_end = 30
 r_step = 1
 rotor_radii = np.arange(r_start, r_end+r_step, r_step)
 
@@ -45,8 +45,16 @@ capacity_vals = np.arange(Pt_start, Pt_end+Pt_step, Pt_step)
 lcoe_results = np.zeros((len(rotor_radii), len(capacity_vals)))
 becc_results = np.zeros((len(rotor_radii), len(capacity_vals)))
 
+# Make counter to track progress
+counter = 1
+total_runs = len(rotor_radii)*len(capacity_vals)
+
 for i in range(len(rotor_radii)):
     for j in range(len(capacity_vals)):
+        # Indicate which simulation is active
+        print(f"Running simulation {counter} of {total_runs} total", end="\r")
+        counter = counter + 1
+
         # set the rotor radius and capacity directly
         model.model.set_val("tidal.rotor_radius", rotor_radii[i])
         model.model.set_val("tidal.device_rating", capacity_vals[j])
@@ -75,7 +83,7 @@ for j in range(len(capacity_vals)):
     plt.scatter(rotor_radii*2, lcoe_results[:, j], label = f"{capacity_vals[j]/1000} MW")
 plt.xlabel("Rotor Diameter (m)")
 plt.ylabel("LCOE ($/kWh)")
-plt.title("LCOE vs Tidal Rotor Diameter & Device Capacity\n(TIGER 4 Unit Array with All Secondary Improvements & Cook Inlet, AK Currents)")
+plt.title("LCOE vs Tidal Rotor Diameter & Device Capacity\n(TIGER 50 Unit Array with All Secondary Improvements & Cook Inlet, AK Currents)")
 plt.legend()
 plt.grid(True)
 plt.show()
@@ -84,7 +92,7 @@ for j in range(len(capacity_vals)):
     plt.scatter(rotor_radii*2, becc_results[:, j], label = f"{capacity_vals[j]/1000} MW")
 plt.xlabel("Rotor Diameter (m)")
 plt.ylabel("Break Even Carbon Credit Cost ($/tCO2)")
-plt.title("Break Even Carbon Credit Cost vs Tidal Rotor Diameter & Device Capacity\n(10 ktCO2/yr Scale OAE Plant with TIGER 4 Unit Array with All Secondary Improvements & Cook Inlet, AK Currents)")
+plt.title("Break Even Carbon Credit Cost vs Tidal Rotor Diameter & Device Capacity\n(100 ktCO2/yr Scale OAE Plant with TIGER 50 Unit Array with All Secondary Improvements & Cook Inlet, AK Currents)")
 plt.legend()
 plt.grid(True)
 plt.show()

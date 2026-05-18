@@ -31,6 +31,8 @@ rotor_radii = np.arange(r_start, r_end+r_step, r_step)
 lcoe_results = []
 becc_results = []
 
+counter = 0
+total_tests = len(rotor_radii)
 for rotor_radius in rotor_radii:
     # set the rotor radius directly
     model.model.set_val("tidal.rotor_radius", rotor_radius)
@@ -45,6 +47,11 @@ for rotor_radius in rotor_radii:
     # Store the results
     lcoe_results.append(lcoe)
     becc_results.append(becc)
+
+    counter = counter + 1
+
+    # Print progress
+    print(f"{counter} of {total_tests} Runs Complete", end="\r")
 
 # Create scatter plots
 plt.scatter(rotor_radii*2, lcoe_results)
