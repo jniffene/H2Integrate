@@ -1,0 +1,42 @@
+name: technology_config
+description: This plant produces electricity from tidal and powers an off-grid OAE plant.
+technologies:
+  tidal:
+    performance_model:
+      model: TigerTidalPerformanceModel
+    cost_model:
+      model: TigerTidalCostModel
+    model_inputs:
+      shared_parameters:
+        device_rating_kw: 2000  # Based on the baseline TIGER
+        num_devices: 50
+        rotor_radius: 10
+      cost_parameters:
+        sub_sea_hubs:        True
+        standard_wet_mates:  True
+        piled_foundations:   True
+        advanced_blade_mats: True
+  oae:
+    performance_model:
+      model: OAEPerformanceModel
+    finance_model:
+      model: OAECostAndFinancialModel
+    model_inputs:
+      performance_parameters:
+        number_ed_min: 1
+        number_ed_max: 10
+        max_ed_system_flow_rate_m3s: 0.324  # m^3/s
+        max_ed_system_power_w: 35000000 # W
+        ed_acid_concentration: 1.0 # M
+        ed_base_concentration: 0.54 # M
+        frac_base_flow: 0.5
+        assumed_CDR_rate: 0.8  # mol CO2/mol NaOH
+        use_storage_tanks: true
+        initial_tank_volume_m3: 0.  # m^3
+        store_hours: 12.  # hours
+        acid_disposal_method: sell rca
+        initial_salinity_ppt: 73.76  # ppt
+        initial_temp_C: 10.0  # degrees Celsius
+        initial_dic_mol_per_L: 0.0044  # mol/L
+        initial_pH: 8.1  # initial pH
+        save_outputs: true
