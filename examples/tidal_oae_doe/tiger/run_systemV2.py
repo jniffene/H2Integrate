@@ -4,6 +4,7 @@ from h2integrate.core.h2integrate_model import H2IntegrateModel
 import numpy as np
 import matplotlib.pyplot as plt
 import math
+from h2integrate.postprocess.sql_to_csv import convert_sql_to_csv_summary
 
 model = H2IntegrateModel("input_config.yaml")
 model.setup()
@@ -23,7 +24,7 @@ model.prob.set_val("tidal.tidal_velocity", vel_t, units="m/s")
 
 # Vary the rotor radius and determine the LCOE and Breakeven Carbon Credit Cost
 r_start = 10
-r_end = 25
+r_end = 11
 r_step = 1
 rotor_radii = np.arange(r_start, r_end+r_step, r_step)
 
@@ -51,7 +52,12 @@ for rotor_radius in rotor_radii:
     counter = counter + 1
 
     # Print progress
-    print(f"{counter} of {total_tests} Runs Complete", end="\r")
+    # print(f"{counter} of {total_tests} Runs Complete", end="\r")
+    print(f"{counter} of {total_tests} Runs Complete")
+
+
+# Save scalar results as a one-row csv summary
+summary_df = convert_sql_to_csv_summary(model.recorder_path)
 
 # Create scatter plots
 plt.scatter(rotor_radii*2, lcoe_results)

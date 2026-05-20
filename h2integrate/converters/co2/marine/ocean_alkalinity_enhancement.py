@@ -194,7 +194,7 @@ class OAEPerformanceModel(PerformanceModelBaseClass):
             desc="Cost of acid disposal",
         )
         self.add_output(
-            "based_added_seawater_max_power",
+            "base_added_seawater_max_power",
             val=0.0,
             units="mol/year",
             desc="Maximum power for base added seawater per year",
@@ -211,6 +211,12 @@ class OAEPerformanceModel(PerformanceModelBaseClass):
             shape=self.n_timesteps,
             units="W",
             desc="Unused energy unused by OAE system",
+        )
+        self.add_output(
+            "availability_factor",
+            val =0.0,
+            units="unitless",
+            desc="Fraction of time system is on",
         )
 
     def compute(self, inputs, outputs):
@@ -254,6 +260,7 @@ class OAEPerformanceModel(PerformanceModelBaseClass):
             oae_outputs.M_co2est * 1e3
         )  # convert from metric tons/year to kg/year
         outputs["capacity_factor"] = oae_outputs.oae_capacity_factor
+        outputs["availability_factor"] = oae_outputs.overall_capacity_factor
         outputs["alkaline_seawater_flow_rate"] = oae_outputs.OAE_outputs["Qout"]
         outputs["alkaline_seawater_pH"] = oae_outputs.OAE_outputs["pH_f"]
         outputs["alkaline_seawater_dic"] = oae_outputs.OAE_outputs["dic_f"]
@@ -265,7 +272,7 @@ class OAEPerformanceModel(PerformanceModelBaseClass):
         outputs["value_products"] = oae_outputs.X_rev_yr
         outputs["mass_acid_disposed"] = oae_outputs.M_disposed_yr
         outputs["cost_acid_disposal"] = oae_outputs.X_disp
-        outputs["based_added_seawater_max_power"] = oae_outputs.mol_OH_yr_MaxPwr
+        outputs["base_added_seawater_max_power"] = oae_outputs.mol_OH_yr_MaxPwr
         outputs["mass_rca"] = oae_outputs.slurry_mass_max
         outputs["unused_energy"] = oae_outputs.OAE_outputs["P_xs"]
 
@@ -339,7 +346,7 @@ class OAECostModel(CostModelBaseClass):
             desc="Cost of acid disposal",
         )
         self.add_input(
-            "based_added_seawater_max_power",
+            "base_added_seawater_max_power",
             val=0.0,
             units="mol/year",
             desc="Maximum power for base added seawater per year",
@@ -358,7 +365,7 @@ class OAECostModel(CostModelBaseClass):
             waste_mass=inputs["mass_acid_disposed"][0],
             waste_disposal_cost=inputs["cost_acid_disposal"][0],
             estimated_cdr=inputs["annual_co2_produced"][0],
-            base_added_seawater_max_power=inputs["based_added_seawater_max_power"][0],
+            base_added_seawater_max_power=inputs["base_added_seawater_max_power"][0],
             mass_rca=inputs["mass_rca"][0],
             annual_energy_cost=0,  # Energy costs are calculated within H2I and added to LCOC calc
         )
@@ -458,7 +465,7 @@ class OAECostAndFinancialModel(CostModelBaseClass):
             desc="Cost of acid disposal",
         )
         self.add_input(
-            "based_added_seawater_max_power",
+            "base_added_seawater_max_power",
             val=0.0,
             units="mol/year",
             desc="Maximum power for base added seawater per year",
@@ -482,6 +489,24 @@ class OAECostAndFinancialModel(CostModelBaseClass):
             units="USD/t",
             desc="Carbon credit value required to achieve NPV of zero",
         )
+        self.add_output(
+            "profitability_index",
+            val=0.0,
+            units="unitless",
+            desc="Profitability index for OAE plant or NPV divided by capital cost",
+        )
+        self.add_output(
+            "payback_time",
+            val=0.0,
+            units="year",
+            desc="Years needed to recover investment for OAE plant",
+        )
+        self.add_output(
+            "energy_vs_opex",
+            val=0.0,
+            units="unitless",
+            desc="Ratio of the annual energy cost to the annual OPEX",
+        )
 
     def compute(self, inputs, outputs, discrete_inputs, discrete_outputs):
         """Model assume that you only pay for the energy you use for OAE."""
@@ -501,7 +526,7 @@ class OAECostAndFinancialModel(CostModelBaseClass):
             waste_mass=inputs["mass_acid_disposed"][0],
             waste_disposal_cost=inputs["cost_acid_disposal"][0],
             estimated_cdr=inputs["annual_co2_produced"][0],
-            base_added_seawater_max_power=inputs["based_added_seawater_max_power"][0],
+            base_added_seawater_max_power=inputs["base_added_seawater_max_power"][0],
             mass_rca=inputs["mass_rca"][0],
             annual_energy_cost=annual_energy_cost_usd_yr[0],
         )
@@ -513,3 +538,6 @@ class OAECostAndFinancialModel(CostModelBaseClass):
         outputs["OpEx"] = results["Annual Operating Cost ($/yr)"]
         outputs["NPV"] = results["Net Present Value (NPV) ($)"]
         outputs["carbon_credit_value"] = results["Carbon Credit Value ($/tCO2)"]
+        outputs["profitability_index"] = results["Profitability Index (PI)"]
+        outputs["payback_time"] = results["Discounted Payback Time (Years)"]
+        outputs["energy_vs_opex"] = annual_energy_cost_usd_yr/results["Annual Operating Cost ($/yr)"]

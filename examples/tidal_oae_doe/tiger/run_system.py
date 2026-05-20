@@ -3,6 +3,9 @@ from h2integrate.core.file_utils import load_yaml, check_file_format_for_csv_gen
 from h2integrate.core.h2integrate_model import H2IntegrateModel
 import numpy as np
 import pandas as pd
+from h2integrate.postprocess.sql_timeseries_to_csv import save_case_timeseries_as_csv
+from h2integrate.postprocess.sql_to_csv import convert_sql_to_csv_summary
+
 
 model = H2IntegrateModel("input_config.yaml")
 model.setup()
@@ -12,12 +15,12 @@ model.setup()
 # model.model.set_val("tidal.num_devices", 50, units="unitless")
 
 hours = 24*365
-v = 4 * np.ones(hours)
-model.prob.set_val("tidal.tidal_velocity", v, units="m/s")
+# v = 4 * np.ones(hours)
+# model.prob.set_val("tidal.tidal_velocity", v, units="m/s")
 
 
 # vel_t = np.zeros(hours)
-# time = np.zeros(hours)
+time = np.zeros(hours)
 
 # Amp = (4)/2
 # # periodT = 24
@@ -31,14 +34,21 @@ model.prob.set_val("tidal.tidal_velocity", v, units="m/s")
 #     vel_t[i] = abs(Amp*math.sin(2*np.pi/periodT*(i+1) + movSide) + movUp)
 #     time[i] = i+1
 
-# df = pd.read_csv('AK_cook_inlet_tidal_resource_2005.csv', usecols=['Mean Current Speed (m/s)'])
-# vel_t = df.values.tolist()
-# for i in range(len(vel_t)):
-#     time[i] = i+1
+df = pd.read_csv('AK_cook_inlet_tidal_resource_2005.csv', usecols=['Mean Current Speed (m/s)'])
+vel_t = df.values.tolist()
+for i in range(len(vel_t)):
+    time[i] = i+1
 
-# model.prob.set_val("tidal.tidal_velocity", vel_t, units="m/s")
+model.prob.set_val("tidal.tidal_velocity", vel_t, units="m/s")
 model.run()
 model.post_process()
+
+# Save scalar results as a one-row csv summary
+summary_df = convert_sql_to_csv_summary(model.recorder_path)
+
+# # Save all timeseries data to a csv file
+# timeseries_data = save_case_timeseries_as_csv(model.recorder_path)
+
 # Create an H2I model
 
 # # Load the configurations and run the model
