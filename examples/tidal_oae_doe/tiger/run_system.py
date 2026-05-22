@@ -41,7 +41,7 @@ for i in range(len(vel_t)):
 
 model.prob.set_val("tidal.tidal_velocity", vel_t, units="m/s")
 model.run()
-model.post_process()
+# model.post_process()
 
 # Save scalar results as a one-row csv summary
 summary_df = convert_sql_to_csv_summary(model.recorder_path)
