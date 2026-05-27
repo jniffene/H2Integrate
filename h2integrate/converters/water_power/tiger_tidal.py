@@ -474,27 +474,32 @@ class TigerTidalCostModel(CostModelBaseClass):
 
         # Calculate constants alpha, beta, and gamma
         w_b = 4.2/100 # change in CAPEX from change in blade material
-        alpha = inputs["mod_alpha"][0] * 2*w_b*CPX_i/(N_i*R_rI**alpha_exp) # $/m^2.7 or $/m^alpha_exp
+        alpha = 2*w_b*CPX_i/(N_i*R_rI**alpha_exp) # $/m^2.7 or $/m^alpha_exp
         w_r = 8.9/100 # change in CAPEX from change in blade length
         r1 = R_rI # initial blade length considered
         r2 = 13 # (m) new blade length considered
-        beta = inputs["mod_beta"][0] * (w_r*CPX_i/N_i - alpha*(r2**alpha_exp - r1**alpha_exp))/(r2**beta_exp - r1**beta_exp) # $/m
+        beta = (w_r*CPX_i/N_i - alpha*(r2**alpha_exp - r1**alpha_exp))/(r2**beta_exp - r1**beta_exp) # $/m
         w_c = -32.9/100 # change in CAPEX from change in capacity
         p1 = P_tI_kw # initial capacity
         p2 = 3000 # new capacity
-        gamma = inputs["mod_gamma"][0] * ((X_cpxI*((1+w_c)*p2 - p1))/(p2**gamma_exp - p1**gamma_exp)) # $/kW
+        gamma = ((X_cpxI*((1+w_c)*p2 - p1))/((p2/1000**gamma_exp - p1/1000**gamma_exp)*1000)) # $/kW
+
+        # Modify the coefficient values for sensitivity analysis
+        alpha = inputs["mod_alpha"][0] * alpha
+        beta = inputs["mod_beta"][0] * beta
+        gamma = inputs["mod_gamma"][0] * gamma
 
         def rNcTurbCosts(R_rot,P_turb_kw, advB=False):
             # Calculate blade CAPEX
-            Z_a = alpha*R_rot**2.7
+            Z_a = alpha*R_rot**alpha_exp
             if advB: 
                 Z_a = Z_a*(1 - inputs["cost_reduction_of_advanced_blade_mats"][0])
             
             # Determine CAPEX of components dependent on blade length
-            Z_b = beta*R_rot
+            Z_b = beta*R_rot**beta_exp
             
             # Determine CAPEX of components dependent on turbine capacity
-            Z_c = gamma*P_turb_kw
+            Z_c = gamma*(P_turb_kw/1000**gamma_exp)*1000
 
             Z_sum = Z_a + Z_b + Z_c
             return Z_sum
