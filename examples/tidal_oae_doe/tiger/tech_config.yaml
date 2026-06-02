@@ -3,19 +3,19 @@ description: This plant produces electricity from tidal and powers an off-grid O
 technologies:
   tidal:
     performance_model:
-      model: TigerTidalPerformanceModel
+      model: ModRM1TidalPerformanceModel
     cost_model:
-      model: TigerTidalCostModel
+      model: ModRM1TidalCostModel
     model_inputs:
       shared_parameters:
-        device_rating_kw: 2000  # Based on the baseline TIGER
+        device_rating_kw: 1115  # Based on the baseline RM1
         num_devices: 50
         rotor_radius: 10
-      cost_parameters:
-        sub_sea_hubs:        False
-        standard_wet_mates:  False
-        piled_foundations:   False
-        advanced_blade_mats: False
+      # cost_parameters:
+      #   sub_sea_hubs:        False
+      #   standard_wet_mates:  False
+      #   piled_foundations:   False
+      #   advanced_blade_mats: False
         # mod_alpha: 1
   oae:
     performance_model:

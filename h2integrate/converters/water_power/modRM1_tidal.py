@@ -237,6 +237,11 @@ class ModRM1TidalCostModel(CostModelBaseClass):
     """An OpenMDAO component for the modified RM1 tidal cost model.
     It takes tidal device parameters as input and outputs cost data.
     """
+    # This is considered an hourly timestep
+    _time_step_bounds = (
+        3600,
+        3600,
+    )  # (min, max) time step lengths (in seconds) compatible with this model
 
     def setup(self):
         
@@ -382,21 +387,25 @@ class ModRM1TidalCostModel(CostModelBaseClass):
         x_cms = 170 * usd14_usd25 # (2025$/kW) control system costs (used as stand-in for condition monitoring system) from RM1-CBS spreadsheet for 100 unit array
 
         # Estimate constants for alpha, beta, and gamma
-        alpha = inputs["mod_alpha"][0] * x_blades * P_tI_kw / (R_rI**alpha_exp)
+        alpha = x_blades * P_tI_kw / (R_rI**alpha_exp)
         x_beta = x_rotor_core + x_pitch_system + x_low_speed_shaft
-        beta = inputs["mod_beta"][0] * x_beta * P_tI_kw / (R_rI**beta_exp)
+        beta = x_beta * P_tI_kw / (R_rI**beta_exp)
         x_gamma = x_gearbox + x_generator + x_pto_frame + x_bearing + x_hydraulic + x_cms
-        gamma = inputs["mod_gamma"][0] * x_gamma * P_tI_kw / (P_tI_kw ** gamma_exp) # place holder to later modify exponents
+        gamma = x_gamma * P_tI_kw / (P_tI_kw ** gamma_exp) # place holder to later modify exponents
+
+        # Modify the coefficient values for sensitivity analysis
+        alpha = inputs["mod_alpha"][0] * alpha
+        beta = inputs["mod_beta"][0] * beta
+        gamma = inputs["mod_gamma"][0] * gamma
 
         def rNcTurbCosts(R_rot,P_turb_kw):
             # Calculate blade CAPEX
-            Z_a = alpha*R_rot**2.7
-            
+            Z_a = alpha*R_rot**alpha_exp            
             # Determine CAPEX of components dependent on blade length
-            Z_b = beta*R_rot
+            Z_b = beta*R_rot**beta_exp
             
             # Determine CAPEX of components dependent on turbine capacity
-            Z_c = gamma*P_turb_kw
+            Z_c = gamma*(P_turb_kw/1000**gamma_exp)*1000
 
             Z_sum = Z_a + Z_b + Z_c
             return Z_sum

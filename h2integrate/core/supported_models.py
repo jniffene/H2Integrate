@@ -175,6 +175,9 @@ from h2integrate.control.control_strategies.storage.demand_openloop_storage_cont
 from h2integrate.converters.water_power.tiger_tidal import (
     TigerTidalPerformanceModel, TigerTidalCostModel
 )
+from h2integrate.converters.water_power.modRM1_tidal import (
+    ModRM1TidalPerformanceModel, ModRM1TidalCostModel
+)
 
 supported_models = {
     # Resources
@@ -205,6 +208,8 @@ supported_models = {
     "PySAMMarineCostModel": PySAMMarineCostModel,
     "TigerTidalPerformanceModel": TigerTidalPerformanceModel,
     "TigerTidalCostModel":TigerTidalCostModel,
+    "ModRM1TidalPerformanceModel": ModRM1TidalPerformanceModel,
+    "ModRM1TidalCostModel": ModRM1TidalCostModel,
     "RunOfRiverHydroPerformanceModel": RunOfRiverHydroPerformanceModel,
     "RunOfRiverHydroCostModel": RunOfRiverHydroCostModel,
     "ECOElectrolyzerPerformanceModel": ECOElectrolyzerPerformanceModel,

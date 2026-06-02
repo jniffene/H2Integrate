@@ -7,34 +7,34 @@ general:
 
 driver:
   design_of_experiments:
-    flag: true
+    flag: false
     debug_print: true
     generator: csvgen
     filename: input_cases.csv
   optimization:
-    flag: false
+    flag: true
     tol: 0.1
     max_iter: 100
     solver: COBYLA
-    rhobeg: 5.
+    rhobeg: 2.
     debug_print: True
 ###### Design Variables
 design_variables:
   tidal:
     rotor_radius:
       flag: true
-      lower: 10 # m
-      upper: 30 # m
+      lower: 5 # m
+      upper: 50 # m
       units: m
     device_rating:
       flag: true
-      lower: 2000 # kW
-      upper: 6000 # kW
-      units: kW
+      lower: 1.115 # MW
+      upper: 3.345 # MW
+      units: MW
 
 #### Objective
 objective:
-  name: oae.carbon_credit_value
+  name: finance_subgroup_electricity.LCOE
 #   # Objective options
 #   # finance_subgroup_electricity.LCOE for tidal
 #   # finance_subgroup_oae_profast.LCOC
