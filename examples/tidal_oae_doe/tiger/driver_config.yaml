@@ -23,8 +23,8 @@ design_variables:
   tidal:
     rotor_radius:
       flag: true
-      lower: 10 # m
-      upper: 30 # m
+      lower: 5 # m
+      upper: 50 # m
       units: m
     device_rating:
       flag: true
