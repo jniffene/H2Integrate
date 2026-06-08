@@ -12,11 +12,10 @@ technologies:
         num_devices: 50
         rotor_radius: 10
       cost_parameters:
-        sub_sea_hubs:        True
-        standard_wet_mates:  True
-        piled_foundations:   True
-        advanced_blade_mats: True
-        # mod_alpha: 1
+        sub_sea_hubs:        false
+        standard_wet_mates:  false
+        piled_foundations:   false
+        advanced_blade_mats: false
   oae:
     performance_model:
       model: OAEPerformanceModel
