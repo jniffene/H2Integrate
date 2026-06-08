@@ -212,12 +212,22 @@ class TigerTidalCostConfig(CostModelBaseConfig):
 
     Advanced:
     Factors / assumptions to change for sensitivity analysis
-    alpha_exp (float): Exponent applied to rotor radius to estimate blade CAPEX with constant alpha
-    beta_exp (float): Exponent applied to rotor radius to estimate turbine CAPEX with constant beta
-    gamma_exp (float): Exponent applied to device capacity to estimate turbine CAPEX with constant gamma
-    mod_alpha (float): Factor applied to alter the calculated value of constant alpha
-    mod_beta (float): Factor applied to alter the calculated value of constant beta
-    mod_gamma (float): Factor applied to alter the calculated value of constant gamma
+    mod_indep_X_exp (float): Factor applied to modify the exponent applied to rotor radius to estimate blade CAPEX with constant alpha (applied after coefficients alpha, beta, and gamma are calculated)
+    mod_indep_Y_exp (float): Factor applied to modify the exponent applied to rotor radius to estimate turbine CAPEX with constant beta (applied after coefficients alpha, beta, and gamma are calculated)
+    mod_indep_Z_exp (float): Factor applied to modify the exponent applied to device capacity to estimate turbine CAPEX with constant gamma (applied after coefficients alpha, beta, and gamma are calculated)
+    mod_dep_X_exp (float): Factor applied to modify the exponent applied to rotor radius to estimate blade CAPEX with constant alpha (applied before coefficients alpha, beta, and gamma are calculated)
+    mod_dep_Y_exp (float): Factor applied to modify the exponent applied to rotor radius to estimate turbine CAPEX with constant beta (applied before coefficients alpha, beta, and gamma are calculated)
+    mod_dep_Z_exp (float): Factor applied to modify the exponent applied to device capacity to estimate turbine CAPEX with constant gamma (applied before coefficients alpha, beta, and gamma are calculated)
+    mod_indep_alpha (float): Factor applied to alter the calculated value of constant alpha (applied after coefficients alpha, beta, and gamma are calculated)
+    mod_indep_beta (float): Factor applied to alter the calculated value of constant beta (applied after coefficients alpha, beta, and gamma are calculated)
+    mod_indep_gamma (float): Factor applied to alter the calculated value of constant gamma (applied after coefficients alpha, beta, and gamma are calculated)
+    mod_dep_alpha (float): Factor applied to alter the calculated value of constant alpha (applied before coefficients alpha, beta, and gamma are calculated)
+    mod_dep_beta (float): Factor applied to alter the calculated value of constant beta (applied before coefficients alpha, beta, and gamma are calculated)
+    mod_dep_gamma (float): Factor applied to alter the calculated value of constant gamma (applied before coefficients alpha, beta, and gamma are calculated)
+    mod_indep_initial_CapEx (float): Factor applied to alter the initial CAPEX (applied after coefficients alpha, beta, and gamma are calculated)
+    mod_indep_initial_OpEx (float): Factor applied to alter the initial OPEX (applied after coefficients alpha, beta, and gamma are calculated)
+    mod_dep_initial_CapEx (float): Factor applied to alter the initial CAPEX (applied before coefficients alpha, beta, and gamma are calculated)
+    mod_dep_initial_OpEx (float): Factor applied to alter the initial OPEX (applied before coefficients alpha, beta, and gamma are calculated)
     a_cpx (float): Coefficient applied to exponential decay curve fit for CAPEX/kW vs number of units in an array
     b_cpx (float): Coefficient applied to exponential decay curve fit for CAPEX/kW vs number of units in an array
     c_cpx (float): Coefficient applied to exponential decay curve fit for CAPEX/kW vs number of units in an array
@@ -242,12 +252,22 @@ class TigerTidalCostConfig(CostModelBaseConfig):
     rotor_radius: float = field(validator=gt_zero)
 
     # factors/ assumptions to change for sensitivity analysis
-    alpha_exp: float = field(default=2.7, validator=gt_zero)
-    beta_exp: float = field(default=1, validator=gt_zero)
-    gamma_exp: float = field(default=1, validator=gt_zero)
-    mod_alpha: float = field(default=1, validator=gt_zero)
-    mod_beta: float = field(default=1, validator=gt_zero)
-    mod_gamma: float = field(default=1, validator=gt_zero)
+    mod_indep_X_exp: float = field(default=1, validator=gt_zero)
+    mod_indep_Y_exp: float = field(default=1, validator=gt_zero)
+    mod_indep_Z_exp: float = field(default=1, validator=gt_zero)
+    mod_dep_X_exp: float = field(default=1, validator=gt_zero)
+    mod_dep_Y_exp: float = field(default=1, validator=gt_zero)
+    mod_dep_Z_exp: float = field(default=1, validator=gt_zero)
+    mod_indep_alpha: float = field(default=1, validator=gt_zero)
+    mod_indep_beta: float = field(default=1, validator=gt_zero)
+    mod_indep_gamma: float = field(default=1, validator=gt_zero)
+    mod_dep_alpha: float = field(default=1, validator=gt_zero)
+    mod_dep_beta: float = field(default=1, validator=gt_zero)
+    mod_dep_gamma: float = field(default=1, validator=gt_zero)
+    mod_indep_initial_CapEx: float = field(default=1, validator=gt_zero)
+    mod_indep_initial_OpEx: float = field(default=1, validator=gt_zero)
+    mod_dep_initial_CapEx: float = field(default=1, validator=gt_zero)
+    mod_dep_initial_OpEx: float = field(default=1, validator=gt_zero)
     a_cpx: float = field(default = 0.4743, validator=gt_zero)
     b_cpx: float = field(default = -0.0354)
     c_cpx: float = field(default = 0.5884, validator=gt_zero)
@@ -329,40 +349,100 @@ class TigerTidalCostModel(CostModelBaseClass):
 
         # Sensitivity analysis inputs
         self.add_input(
-            "alpha_exp",
-            val=self.config.alpha_exp,
+            "mod_indep_X_exp",
+            val=self.config.mod_indep_X_exp,
             units="unitless",
-            desc="Exponent applied to rotor radius to estimate blade CAPEX with constant alpha"
+            desc="Factor applied to modify the exponent applied to rotor radius to estimate blade CAPEX with constant alpha (applied after coefficients alpha, beta, and gamma are calculated)"
         )
         self.add_input(
-            "beta_exp",
-            val=self.config.beta_exp,
+            "mod_dep_X_exp",
+            val=self.config.mod_dep_X_exp,
             units="unitless",
-            desc="Exponent applied to rotor radius to estimate turbine CAPEX with constant beta"
+            desc="Factor applied to modify the exponent applied to rotor radius to estimate blade CAPEX with constant alpha (applied before coefficients alpha, beta, and gamma are calculated)"
         )
         self.add_input(
-            "gamma_exp",
-            val=self.config.gamma_exp,
+            "mod_indep_Y_exp",
+            val=self.config.mod_indep_Y_exp,
             units="unitless",
-            desc="Exponent applied to device capacity to estimate turbine CAPEX with constant gamma"
+            desc="Factor applied to modify the exponent applied to rotor radius to estimate turbine CAPEX with constant beta (applied after coefficients alpha, beta, and gamma are calculated)"
         )
         self.add_input(
-            "mod_alpha",
-            val=self.config.mod_alpha,
+            "mod_dep_Y_exp",
+            val=self.config.mod_dep_Y_exp,
             units="unitless",
-            desc="Factor applied to alter the calculated value of constant alpha"
+            desc="Factor applied to modify the exponent applied to rotor radius to estimate turbine CAPEX with constant beta (applied before coefficients alpha, beta, and gamma are calculated)"
         )
         self.add_input(
-            "mod_beta",
-            val=self.config.mod_beta,
+            "mod_indep_Z_exp",
+            val=self.config.mod_indep_Z_exp,
             units="unitless",
-            desc="Factor applied to alter the calculated value of constant beta"
+            desc="Factor applied to modify the exponent applied to device capacity to estimate turbine CAPEX with constant gamma (applied after coefficients alpha, beta, and gamma are calculated)"
         )
         self.add_input(
-            "mod_gamma",
-            val=self.config.mod_gamma,
+            "mod_dep_Z_exp",
+            val=self.config.mod_dep_Z_exp,
             units="unitless",
-            desc="Factor applied to alter the calculated value of constant gamma"
+            desc="Factor applied to modify the exponent applied to device capacity to estimate turbine CAPEX with constant gamma (applied before coefficients alpha, beta, and gamma are calculated)"
+        )
+        self.add_input(
+            "mod_indep_alpha",
+            val=self.config.mod_indep_alpha,
+            units="unitless",
+            desc="Factor applied to alter the calculated value of constant alpha (applied after coefficients alpha, beta, and gamma are calculated)"
+        )
+        self.add_input(
+            "mod_dep_alpha",
+            val=self.config.mod_dep_alpha,
+            units="unitless",
+            desc="Factor applied to alter the calculated value of constant alpha (applied before coefficients alpha, beta, and gamma are calculated)"
+        )
+        self.add_input(
+            "mod_indep_beta",
+            val=self.config.mod_indep_beta,
+            units="unitless",
+            desc="Factor applied to alter the calculated value of constant beta (applied after coefficients alpha, beta, and gamma are calculated)"
+        )
+        self.add_input(
+            "mod_dep_beta",
+            val=self.config.mod_dep_beta,
+            units="unitless",
+            desc="Factor applied to alter the calculated value of constant beta (applied before coefficients alpha, beta, and gamma are calculated)"
+        )
+        self.add_input(
+            "mod_indep_gamma",
+            val=self.config.mod_indep_gamma,
+            units="unitless",
+            desc="Factor applied to alter the calculated value of constant gamma (applied after coefficients alpha, beta, and gamma are calculated)"
+        )
+        self.add_input(
+            "mod_dep_gamma",
+            val=self.config.mod_dep_gamma,
+            units="unitless",
+            desc="Factor applied to alter the calculated value of constant gamma (applied before coefficients alpha, beta, and gamma are calculated)"
+        )
+        self.add_input(
+            "mod_indep_initial_CapEx",
+            val=self.config.mod_indep_initial_CapEx,
+            units="unitless",
+            desc="Factor applied to alter the initial CAPEX (applied after coefficients alpha, beta, and gamma are calculated)"
+        )
+        self.add_input(
+            "mod_dep_initial_CapEx",
+            val=self.config.mod_dep_initial_CapEx,
+            units="unitless",
+            desc="Factor applied to alter the initial CAPEX (applied before coefficients alpha, beta, and gamma are calculated)"
+        )
+        self.add_input(
+            "mod_indep_initial_OpEx",
+            val=self.config.mod_indep_initial_OpEx,
+            units="unitless",
+            desc="Factor applied to alter the initial OPEX (applied after coefficients alpha, beta, and gamma are calculated)"
+        )
+        self.add_input(
+            "mod_dep_initial_OpEx",
+            val=self.config.mod_dep_initial_OpEx,
+            units="unitless",
+            desc="Factor applied to alter the initial OPEX (applied before coefficients alpha, beta, and gamma are calculated)"
         )
         self.add_input(
             "a_cpx",
@@ -447,15 +527,11 @@ class TigerTidalCostModel(CostModelBaseClass):
         P_t_kw = inputs["device_rating"][0]
         N_t = inputs["num_devices"][0]
 
-        # TODO unclear if this format applies to booleans
+        # Boolean inputs
         advBlades = inputs["advanced_blade_mats"]
         subSeaHub = inputs["sub_sea_hubs"]
         stdWetM8s = inputs["standard_wet_mates"]
         pldFndtns = inputs["piled_foundations"]
-
-        alpha_exp = inputs["alpha_exp"][0]
-        beta_exp = inputs["beta_exp"][0]
-        gamma_exp = inputs["gamma_exp"][0]
         
         # Currency Conversions
         pnd21_usd21 = 1.3757 # Avg conversion from UK pounds in 2021 to USD (https://www.exchangerates.org.uk/GBP-USD-spot-exchange-rates-history-2021.html)
@@ -469,37 +545,40 @@ class TigerTidalCostModel(CostModelBaseClass):
         Y_opxPnd = 200 # (2021 UK pound/kW/yr) OPEX from TIGER 2022
         X_cpxI = X_cpxPnd * pnd21_usd21 * usd21_usd25 # (2025$/kW) CAPEX from TIGER 2022 adjusted from 2021 UK pound/kW 
         Y_opxI = Y_opxPnd * pnd21_usd21 * usd21_usd25 # (2025$/kW/yr) OPEX from TIGER 2022 adjusted from 2021 UK pound/kW/yr
-        CPX_i = X_cpxI * P_tI_kw * N_i # (2025$) CAPEX
-        OPX_i = Y_opxI * P_tI_kw * N_i # (2025$/yr) OPEX
+        CPX_i = X_cpxI * P_tI_kw * N_i * inputs["mod_dep_initial_CapEx"][0] # (2025$) CAPEX
+        OPX_i = Y_opxI * P_tI_kw * N_i * inputs["mod_dep_initial_OpEx"][0] # (2025$/yr) OPEX
 
         # Calculate constants alpha, beta, and gamma
         w_b = 4.2/100 # change in CAPEX from change in blade material
-        alpha = 2*w_b*CPX_i/(N_i*R_rI**alpha_exp) # $/m^2.7 or $/m^alpha_exp
+        alpha = 2*w_b*CPX_i/(N_i*R_rI**(2.7*inputs["mod_dep_X_exp"][0])) # $/m^2.7 or $/m^2.7
+        alpha = inputs["mod_dep_alpha"][0] * alpha
         w_r = 8.9/100 # change in CAPEX from change in blade length
         r1 = R_rI # initial blade length considered
         r2 = 13 # (m) new blade length considered
-        beta = (w_r*CPX_i/N_i - alpha*(r2**alpha_exp - r1**alpha_exp))/(r2**beta_exp - r1**beta_exp) # $/m
+        beta = (w_r*CPX_i/N_i - alpha*(r2**(2.7*inputs["mod_dep_X_exp"][0]) - r1**(2.7*inputs["mod_dep_X_exp"][0])))/(r2**(inputs["mod_dep_Y_exp"][0]) - r1**(inputs["mod_dep_Y_exp"][0])) # $/m
+        beta = inputs["mod_dep_beta"][0] * beta
         w_c = -32.9/100 # change in CAPEX from change in capacity
         p1 = P_tI_kw # initial capacity
         p2 = 3000 # new capacity
-        gamma = ((X_cpxI*((1+w_c)*p2 - p1))/((p2/1000**gamma_exp - p1/1000**gamma_exp)*1000)) # $/kW
+        gamma = ((X_cpxI*((1+w_c)*p2 - p1))/(((p2/1000)**(inputs["mod_dep_Z_exp"][0]) - (p1/1000)**(inputs["mod_dep_Z_exp"][0]))*1000)) # $/kW
+        gamma = inputs["mod_dep_gamma"][0] * gamma
 
-        # Modify the coefficient values for sensitivity analysis
-        alpha = inputs["mod_alpha"][0] * alpha
-        beta = inputs["mod_beta"][0] * beta
-        gamma = inputs["mod_gamma"][0] * gamma
+        # Modify the coefficient values independently for sensitivity analysis
+        alpha = inputs["mod_indep_alpha"][0] * alpha
+        beta = inputs["mod_indep_beta"][0] * beta
+        gamma = inputs["mod_indep_gamma"][0] * gamma
 
         def rNcTurbCosts(R_rot,P_turb_kw, advB=False):
             # Calculate blade CAPEX
-            Z_a = alpha*R_rot**alpha_exp
+            Z_a = alpha*R_rot**(2.7*inputs["mod_indep_X_exp"][0])
             if advB: 
                 Z_a = Z_a*(1 - inputs["cost_reduction_of_advanced_blade_mats"][0])
             
             # Determine CAPEX of components dependent on blade length
-            Z_b = beta*R_rot**beta_exp
+            Z_b = beta*R_rot**(inputs["mod_indep_Y_exp"][0])
             
             # Determine CAPEX of components dependent on turbine capacity
-            Z_c = gamma*(P_turb_kw/1000**gamma_exp)*1000
+            Z_c = gamma*((P_turb_kw/1000)**(inputs["mod_indep_Z_exp"][0]))*1000
 
             Z_sum = Z_a + Z_b + Z_c
             return Z_sum
@@ -513,10 +592,10 @@ class TigerTidalCostModel(CostModelBaseClass):
         
         # Change in turbine capital costs for initial array size
         DturbCPX = N_i*(turbCPX_f - turbCPX_i)
-        CPX_f4 = DturbCPX + CPX_i
+        CPX_f4 = DturbCPX + CPX_i * inputs["mod_indep_initial_CapEx"][0]
         
         # Change in turbine operational costs for initial array size
-        OPX_f4 = OPX_i # since altering the turbine is assumed to not change OPEX
+        OPX_f4 = OPX_i * inputs["mod_indep_initial_OpEx"][0] # since altering the turbine is assumed to not change OPEX
 
         ### Apply other cost reductions due to other improvements
         if subSeaHub or stdWetM8s or pldFndtns:

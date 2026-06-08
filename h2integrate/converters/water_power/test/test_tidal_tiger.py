@@ -85,6 +85,39 @@ def cost_tech_config_adv():
     }
     return cost_tech_config_adv
 
+@fixture
+def cost_tech_config_sens():
+    cost_tech_config_sens = {
+        "model_inputs": {
+            "cost_parameters": {
+                "device_rating_kw": 2000,
+                "num_devices": 4,
+                "rotor_radius": 10,
+                "sub_sea_hubs":        False,
+                "standard_wet_mates":  False,
+                "piled_foundations":   False,
+                "advanced_blade_mats": False,
+                "mod_indep_X_exp":         1.3,
+                "mod_indep_Y_exp":         0.7,
+                "mod_indep_Z_exp":         1.3,
+                "mod_dep_X_exp":           0.7,
+                "mod_dep_Y_exp":           1.3,
+                "mod_dep_Z_exp":           0.7,
+                "mod_indep_alpha":         1.3,
+                "mod_indep_beta":          0.7,
+                "mod_indep_gamma":         1.3,
+                "mod_dep_alpha":           0.7,
+                "mod_dep_beta":            1.3,
+                "mod_dep_gamma":           0.7,
+                "mod_indep_initial_CapEx": 1.3,
+                "mod_indep_initial_OpEx":  0.7,
+                "mod_dep_initial_CapEx":   1.3,
+                "mod_dep_initial_OpEx":    0.7,
+            }
+        }
+    }
+    return cost_tech_config_sens
+
 
 # May be unnecessary
 # @fixture
@@ -327,3 +360,46 @@ def test_tidal_sine_power_performance_outputs(performance_tech_config_sine, plan
         assert pytest.approx(prob.get_val("total_electricity_produced", units="kW*h"), rel=1e-6) == 619660205.362
     with subtests.test("capacity factor given sine velocity"):
         assert pytest.approx(prob.get_val("capacity_factor", units="unitless"), rel=1e-6) == 0.47158311
+
+
+@pytest.mark.unit # marks as a unit type test
+def test_tidal_sens_cost_outputs(cost_tech_config_sens, plant_config, subtests): # can swap between configs here
+    prob = om.Problem()
+
+    cost = TigerTidalCostModel(
+        plant_config=plant_config,
+        tech_config=cost_tech_config_sens,
+        driver_config={},
+    )
+    prob.model.add_subsystem("cost", cost, promotes=["*"])
+    prob.setup()
+    prob.run_model()
+
+    with subtests.test("sensitivity CAPEX"):
+        assert (
+            pytest.approx(prob.get_val("CapEx", units="USD"), rel=1e-6) == 150442322.62
+        )
+    with subtests.test("sensitivity OPEX"):
+        assert (
+            pytest.approx(prob.get_val("OpEx", units="USD/year"), rel=1e-6) == 1309832.89
+        )
+    with subtests.test("sensitivity CAPEX/kW"):
+        assert (
+            pytest.approx(prob.get_val("CapEx_per_kW", units="USD/kW"), rel=1e-6) == 18805.29
+        )
+    with subtests.test("sensitivity OPEX/kW"):
+        assert (
+            pytest.approx(prob.get_val("OpEx_per_kW", units="USD/kW/year"), rel=1e-5) == 163.73
+        )
+    with subtests.test("sensitivity alpha"):
+        assert (
+            pytest.approx(prob.get_val("alpha", units="unitless"), rel=1e-6) == 28487.46150672746
+        )
+    with subtests.test("sensitivity beta"):
+        assert (
+            pytest.approx(prob.get_val("beta", units="unitless"), rel=1e-6) == 166377.86617460026
+        )
+    with subtests.test("sensitivity gamma"):
+        assert (
+            pytest.approx(prob.get_val("gamma", units="unitless"), rel=1e-5) == 246.87849156823273
+        )
