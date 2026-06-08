@@ -11,12 +11,6 @@ technologies:
         device_rating_kw: 1115  # Based on the baseline RM1
         num_devices: 50
         rotor_radius: 10
-      # cost_parameters:
-      #   sub_sea_hubs:        False
-      #   standard_wet_mates:  False
-      #   piled_foundations:   False
-      #   advanced_blade_mats: False
-        # mod_alpha: 1
   oae:
     performance_model:
       model: OAEPerformanceModel

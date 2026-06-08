@@ -14,13 +14,13 @@ r_end = 30
 r_step = 1
 rotor_radii = np.arange(r_start, r_end+r_step, r_step)
 
-Pt_start = 2000
-Pt_end = 6000
-Pt_step = 1000
+Pt_start = 1115
+Pt_end = 1115*3
+Pt_step = 1115/2
 capacity_vals = np.arange(Pt_start, Pt_end+Pt_step, Pt_step)
 
 # Vary the sensitivity variables
-c_pwr = 0.41
+c_pwr = 0.3
 
 # Make a matrix full of the values for radius and capacity and the defaults for the sensitivity analysis
 vals = np.ones((len(rotor_radii) * len(capacity_vals) * len(sens_vars) * 2, len(vars)))

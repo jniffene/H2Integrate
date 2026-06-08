@@ -77,6 +77,34 @@ def cost_tech_config_adv():
     }
     return cost_tech_config_adv
 
+@fixture
+def cost_tech_config_sense():
+    cost_tech_config_sense = {
+        "model_inputs": {
+            "cost_parameters": {
+                "device_rating_kw": 1115,
+                "num_devices": 100,
+                "rotor_radius": 10,
+                "mod_indep_X_exp":         1.3,
+                "mod_indep_Y_exp":         0.7,
+                "mod_indep_Z_exp":         1.3,
+                "mod_dep_X_exp":           0.7,
+                "mod_dep_Y_exp":           1.3,
+                "mod_dep_Z_exp":           0.7,
+                "mod_indep_alpha":         1.3,
+                "mod_indep_beta":          0.7,
+                "mod_indep_gamma":         1.3,
+                "mod_dep_alpha":           0.7,
+                "mod_dep_beta":            1.3,
+                "mod_dep_gamma":           0.7,
+                "mod_indep_initial_CapEx": 1.3,
+                "mod_indep_initial_OpEx":  0.7,
+                "mod_dep_initial_CapEx":   1.3,
+                "mod_dep_initial_OpEx":    0.7,
+            }
+        }
+    }
+    return cost_tech_config_sense
 
 # May be unnecessary
 # @fixture
@@ -319,3 +347,46 @@ def test_tidal_sine_power_performance_outputs(performance_tech_config_sine, plan
         assert pytest.approx(prob.get_val("total_electricity_produced", units="kW*h"), rel=1e-6) == 603566534.885
     with subtests.test("capacity factor given sine velocity"):
         assert pytest.approx(prob.get_val("capacity_factor", units="unitless"), rel=1e-6) == 0.45933526
+
+
+@pytest.mark.unit # marks as a unit type test
+def test_tidal_sense_cost_outputs(cost_tech_config_sense, plant_config, subtests): # can swap between configs here
+    prob = om.Problem()
+
+    cost = ModRM1TidalCostModel(
+        plant_config=plant_config,
+        tech_config=cost_tech_config_sense,
+        driver_config={},
+    )
+    prob.model.add_subsystem("cost", cost, promotes=["*"])
+    prob.setup()
+    prob.run_model()
+
+    with subtests.test("sensitivity CAPEX"):
+        assert (
+            pytest.approx(prob.get_val("CapEx", units="USD"), rel=1e-6) == 811215229.95
+        )
+    with subtests.test("sensitivity OPEX"):
+        assert (
+            pytest.approx(prob.get_val("OpEx", units="USD/year"), rel=1e-6) == 6380962.04
+        )
+    with subtests.test("sensitivity CAPEX/kW"):
+        assert (
+            pytest.approx(prob.get_val("CapEx_per_kW", units="USD/kW"), rel=1e-6) == 7275.47291
+        )
+    with subtests.test("sensitivity OPEX/kW"):
+        assert (
+            pytest.approx(prob.get_val("OpEx_per_kW", units="USD/kW/year"), rel=1e-5) == 57.22836
+        )
+    with subtests.test("sensitivity alpha"):
+        assert (
+            pytest.approx(prob.get_val("alpha", units="unitless"), rel=1e-6) == 248.52841185145516
+        )
+    with subtests.test("sensitivity beta"):
+        assert (
+            pytest.approx(prob.get_val("beta", units="unitless"), rel=1e-6) == 1174.0779460050785
+        )
+    with subtests.test("sensitivity gamma"):
+        assert (
+            pytest.approx(prob.get_val("gamma", units="unitless"), rel=1e-6) == 1187.5134857644937
+        )

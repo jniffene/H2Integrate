@@ -7,12 +7,12 @@ general:
 
 driver:
   design_of_experiments:
-    flag: false
+    flag: true
     debug_print: true
     generator: csvgen
-    filename: input_cases.csv
+    filename: sensitivity_input_cases.csv
   optimization:
-    flag: true
+    flag: false
     tol: 0.1
     max_iter: 100
     solver: COBYLA
@@ -23,14 +23,15 @@ design_variables:
   tidal:
     rotor_radius:
       flag: true
-      lower: 5 # m
-      upper: 50 # m
+      lower: 10 # m
+      upper: 30 # m
       units: m
     device_rating:
       flag: true
       lower: 1.115 # MW
       upper: 3.345 # MW
       units: MW
+    
 
 #### Objective
 objective:

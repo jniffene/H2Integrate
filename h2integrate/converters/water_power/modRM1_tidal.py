@@ -207,12 +207,22 @@ class ModRM1TidalCostConfig(CostModelBaseConfig):
 
     Advanced:
     Factors / assumptions to change for sensitivity analysis
-    alpha_exp (float): Exponent applied to rotor radius to estimate blade CAPEX with constant alpha
-    beta_exp (float): Exponent applied to rotor radius to estimate turbine CAPEX with constant beta
-    gamma_exp (float): Exponent applied to device capacity to estimate turbine CAPEX with constant gamma
-    mod_alpha (float): Factor applied to alter the calculated value of constant alpha
-    mod_beta (float): Factor applied to alter the calculated value of constant beta
-    mod_gamma (float): Factor applied to alter the calculated value of constant gamma
+    mod_indep_X_exp (float): Factor applied to modify the exponent applied to rotor radius to estimate blade CAPEX with constant alpha (applied after coefficients alpha, beta, and gamma are calculated)
+    mod_indep_Y_exp (float): Factor applied to modify the exponent applied to rotor radius to estimate turbine CAPEX with constant beta (applied after coefficients alpha, beta, and gamma are calculated)
+    mod_indep_Z_exp (float): Factor applied to modify the exponent applied to device capacity to estimate turbine CAPEX with constant gamma (applied after coefficients alpha, beta, and gamma are calculated)
+    mod_dep_X_exp (float): Factor applied to modify the exponent applied to rotor radius to estimate blade CAPEX with constant alpha (applied before coefficients alpha, beta, and gamma are calculated)
+    mod_dep_Y_exp (float): Factor applied to modify the exponent applied to rotor radius to estimate turbine CAPEX with constant beta (applied before coefficients alpha, beta, and gamma are calculated)
+    mod_dep_Z_exp (float): Factor applied to modify the exponent applied to device capacity to estimate turbine CAPEX with constant gamma (applied before coefficients alpha, beta, and gamma are calculated)
+    mod_indep_alpha (float): Factor applied to alter the calculated value of constant alpha (applied after coefficients alpha, beta, and gamma are calculated)
+    mod_indep_beta (float): Factor applied to alter the calculated value of constant beta (applied after coefficients alpha, beta, and gamma are calculated)
+    mod_indep_gamma (float): Factor applied to alter the calculated value of constant gamma (applied after coefficients alpha, beta, and gamma are calculated)
+    mod_dep_alpha (float): Factor applied to alter the calculated value of constant alpha (applied before coefficients alpha, beta, and gamma are calculated)
+    mod_dep_beta (float): Factor applied to alter the calculated value of constant beta (applied before coefficients alpha, beta, and gamma are calculated)
+    mod_dep_gamma (float): Factor applied to alter the calculated value of constant gamma (applied before coefficients alpha, beta, and gamma are calculated)
+    mod_indep_initial_CapEx (float): Factor applied to alter the initial CAPEX (applied after coefficients alpha, beta, and gamma are calculated)
+    mod_indep_initial_OpEx (float): Factor applied to alter the initial OPEX (applied after coefficients alpha, beta, and gamma are calculated)
+    mod_dep_initial_CapEx (float): Factor applied to alter the initial CAPEX (applied before coefficients alpha, beta, and gamma are calculated)
+    mod_dep_initial_OpEx (float): Factor applied to alter the initial OPEX (applied before coefficients alpha, beta, and gamma are calculated)
     """
 
     ##### ADD COST MODEL INPUTS HERE
@@ -226,12 +236,22 @@ class ModRM1TidalCostConfig(CostModelBaseConfig):
     rotor_radius: float = field(validator=gt_zero)
 
     # factors/ assumptions to change for sensitivity analysis
-    alpha_exp: float = field(default=2.7, validator=gt_zero)
-    beta_exp: float = field(default=1, validator=gt_zero)
-    gamma_exp: float = field(default=1, validator=gt_zero)
-    mod_alpha: float = field(default=1, validator=gt_zero)
-    mod_beta: float = field(default=1, validator=gt_zero)
-    mod_gamma: float = field(default=1, validator=gt_zero)
+    mod_indep_X_exp: float = field(default=1, validator=gt_zero)
+    mod_indep_Y_exp: float = field(default=1, validator=gt_zero)
+    mod_indep_Z_exp: float = field(default=1, validator=gt_zero)
+    mod_dep_X_exp: float = field(default=1, validator=gt_zero)
+    mod_dep_Y_exp: float = field(default=1, validator=gt_zero)
+    mod_dep_Z_exp: float = field(default=1, validator=gt_zero)
+    mod_indep_alpha: float = field(default=1, validator=gt_zero)
+    mod_indep_beta: float = field(default=1, validator=gt_zero)
+    mod_indep_gamma: float = field(default=1, validator=gt_zero)
+    mod_dep_alpha: float = field(default=1, validator=gt_zero)
+    mod_dep_beta: float = field(default=1, validator=gt_zero)
+    mod_dep_gamma: float = field(default=1, validator=gt_zero)
+    mod_indep_initial_CapEx: float = field(default=1, validator=gt_zero)
+    mod_indep_initial_OpEx: float = field(default=1, validator=gt_zero)
+    mod_dep_initial_CapEx: float = field(default=1, validator=gt_zero)
+    mod_dep_initial_OpEx: float = field(default=1, validator=gt_zero)
 
 class ModRM1TidalCostModel(CostModelBaseClass):
     """An OpenMDAO component for the modified RM1 tidal cost model.
@@ -274,42 +294,101 @@ class ModRM1TidalCostModel(CostModelBaseClass):
 
         # Sensitivity analysis inputs
         self.add_input(
-            "alpha_exp",
-            val=self.config.alpha_exp,
+            "mod_indep_X_exp",
+            val=self.config.mod_indep_X_exp,
             units="unitless",
-            desc="Exponent applied to rotor radius to estimate blade CAPEX with constant alpha"
+            desc="Factor applied to modify the exponent applied to rotor radius to estimate blade CAPEX with constant alpha (applied after coefficients alpha, beta, and gamma are calculated)"
         )
         self.add_input(
-            "beta_exp",
-            val=self.config.beta_exp,
+            "mod_dep_X_exp",
+            val=self.config.mod_dep_X_exp,
             units="unitless",
-            desc="Exponent applied to rotor radius to estimate turbine CAPEX with constant beta"
+            desc="Factor applied to modify the exponent applied to rotor radius to estimate blade CAPEX with constant alpha (applied before coefficients alpha, beta, and gamma are calculated)"
         )
         self.add_input(
-            "gamma_exp",
-            val=self.config.gamma_exp,
+            "mod_indep_Y_exp",
+            val=self.config.mod_indep_Y_exp,
             units="unitless",
-            desc="Exponent applied to device capacity to estimate turbine CAPEX with constant gamma"
+            desc="Factor applied to modify the exponent applied to rotor radius to estimate turbine CAPEX with constant beta (applied after coefficients alpha, beta, and gamma are calculated)"
         )
         self.add_input(
-            "mod_alpha",
-            val=self.config.mod_alpha,
+            "mod_dep_Y_exp",
+            val=self.config.mod_dep_Y_exp,
             units="unitless",
-            desc="Factor applied to alter the calculated value of constant alpha"
+            desc="Factor applied to modify the exponent applied to rotor radius to estimate turbine CAPEX with constant beta (applied before coefficients alpha, beta, and gamma are calculated)"
         )
         self.add_input(
-            "mod_beta",
-            val=self.config.mod_beta,
+            "mod_indep_Z_exp",
+            val=self.config.mod_indep_Z_exp,
             units="unitless",
-            desc="Factor applied to alter the calculated value of constant beta"
+            desc="Factor applied to modify the exponent applied to device capacity to estimate turbine CAPEX with constant gamma (applied after coefficients alpha, beta, and gamma are calculated)"
         )
         self.add_input(
-            "mod_gamma",
-            val=self.config.mod_gamma,
+            "mod_dep_Z_exp",
+            val=self.config.mod_dep_Z_exp,
             units="unitless",
-            desc="Factor applied to alter the calculated value of constant gamma"
+            desc="Factor applied to modify the exponent applied to device capacity to estimate turbine CAPEX with constant gamma (applied before coefficients alpha, beta, and gamma are calculated)"
         )
-        
+        self.add_input(
+            "mod_indep_alpha",
+            val=self.config.mod_indep_alpha,
+            units="unitless",
+            desc="Factor applied to alter the calculated value of constant alpha (applied after coefficients alpha, beta, and gamma are calculated)"
+        )
+        self.add_input(
+            "mod_dep_alpha",
+            val=self.config.mod_dep_alpha,
+            units="unitless",
+            desc="Factor applied to alter the calculated value of constant alpha (applied before coefficients alpha, beta, and gamma are calculated)"
+        )
+        self.add_input(
+            "mod_indep_beta",
+            val=self.config.mod_indep_beta,
+            units="unitless",
+            desc="Factor applied to alter the calculated value of constant beta (applied after coefficients alpha, beta, and gamma are calculated)"
+        )
+        self.add_input(
+            "mod_dep_beta",
+            val=self.config.mod_dep_beta,
+            units="unitless",
+            desc="Factor applied to alter the calculated value of constant beta (applied before coefficients alpha, beta, and gamma are calculated)"
+        )
+        self.add_input(
+            "mod_indep_gamma",
+            val=self.config.mod_indep_gamma,
+            units="unitless",
+            desc="Factor applied to alter the calculated value of constant gamma (applied after coefficients alpha, beta, and gamma are calculated)"
+        )
+        self.add_input(
+            "mod_dep_gamma",
+            val=self.config.mod_dep_gamma,
+            units="unitless",
+            desc="Factor applied to alter the calculated value of constant gamma (applied before coefficients alpha, beta, and gamma are calculated)"
+        )
+        self.add_input(
+            "mod_indep_initial_CapEx",
+            val=self.config.mod_indep_initial_CapEx,
+            units="unitless",
+            desc="Factor applied to alter the initial CAPEX (applied after coefficients alpha, beta, and gamma are calculated)"
+        )
+        self.add_input(
+            "mod_dep_initial_CapEx",
+            val=self.config.mod_dep_initial_CapEx,
+            units="unitless",
+            desc="Factor applied to alter the initial CAPEX (applied before coefficients alpha, beta, and gamma are calculated)"
+        )
+        self.add_input(
+            "mod_indep_initial_OpEx",
+            val=self.config.mod_indep_initial_OpEx,
+            units="unitless",
+            desc="Factor applied to alter the initial OPEX (applied after coefficients alpha, beta, and gamma are calculated)"
+        )
+        self.add_input(
+            "mod_dep_initial_OpEx",
+            val=self.config.mod_dep_initial_OpEx,
+            units="unitless",
+            desc="Factor applied to alter the initial OPEX (applied before coefficients alpha, beta, and gamma are calculated)"
+        )
         # define outputs
         # self.add_output(
         #     "CapEx",
@@ -355,10 +434,6 @@ class ModRM1TidalCostModel(CostModelBaseClass):
         R_r = inputs["rotor_radius"][0]
         P_t_kw = inputs["device_rating"][0]
         N_t = inputs["num_devices"][0]
-
-        alpha_exp = inputs["alpha_exp"][0]
-        beta_exp = inputs["beta_exp"][0]
-        gamma_exp = inputs["gamma_exp"][0]
         
         # Currency Conversions
         usd14_usd25 = 1.3581 # January 2014$ to January 2025$ from CPI (https://www.bls.gov/data/inflation_calculator.htm)
@@ -371,8 +446,8 @@ class ModRM1TidalCostModel(CostModelBaseClass):
         Y_opx2014 = 86 # (2014$/kW/yr) for a 100 unit array
         X_cpxI = X_cpx2014 * usd14_usd25 # (2025$/kW) initial CAPEX of 100 unit array
         Y_opxI = Y_opx2014 * usd14_usd25 # (2025$/kW/yr) initial OPEX of 100 unit array
-        CPX_i = X_cpxI * P_tI_kw * N_i # (2025$) CAPEX
-        OPX_i = Y_opxI * P_tI_kw * N_i # (2025$/yr) OPEX
+        CPX_i = X_cpxI * P_tI_kw * N_i * inputs["mod_dep_initial_CapEx"][0] # (2025$) CAPEX
+        OPX_i = Y_opxI * P_tI_kw * N_i * inputs["mod_dep_initial_OpEx"][0]  # (2025$/yr) OPEX
 
         # Costs per kW from RM1
         x_blades = 14 * usd14_usd25 # (2025$/kW) blade costs from Table 3-9 of RM Report
@@ -387,25 +462,28 @@ class ModRM1TidalCostModel(CostModelBaseClass):
         x_cms = 170 * usd14_usd25 # (2025$/kW) control system costs (used as stand-in for condition monitoring system) from RM1-CBS spreadsheet for 100 unit array
 
         # Estimate constants for alpha, beta, and gamma
-        alpha = x_blades * P_tI_kw / (R_rI**alpha_exp)
+        alpha = x_blades * P_tI_kw / (R_rI**(2.7*inputs["mod_dep_X_exp"][0]))
+        alpha = inputs["mod_dep_alpha"][0] * alpha
         x_beta = x_rotor_core + x_pitch_system + x_low_speed_shaft
-        beta = x_beta * P_tI_kw / (R_rI**beta_exp)
+        beta = x_beta * P_tI_kw / (R_rI**(inputs["mod_dep_Y_exp"][0]))
+        beta = inputs["mod_dep_beta"][0] * beta
         x_gamma = x_gearbox + x_generator + x_pto_frame + x_bearing + x_hydraulic + x_cms
-        gamma = x_gamma * P_tI_kw / (P_tI_kw ** gamma_exp) # place holder to later modify exponents
+        gamma = x_gamma * P_tI_kw / (((P_tI_kw/1000) ** (inputs["mod_dep_Z_exp"][0]))*1000) # place holder to later modify exponents
+        gamma = inputs["mod_dep_gamma"][0] * gamma
 
         # Modify the coefficient values for sensitivity analysis
-        alpha = inputs["mod_alpha"][0] * alpha
-        beta = inputs["mod_beta"][0] * beta
-        gamma = inputs["mod_gamma"][0] * gamma
+        alpha = inputs["mod_indep_alpha"][0] * alpha
+        beta = inputs["mod_indep_beta"][0] * beta
+        gamma = inputs["mod_indep_gamma"][0] * gamma
 
         def rNcTurbCosts(R_rot,P_turb_kw):
             # Calculate blade CAPEX
-            Z_a = alpha*R_rot**alpha_exp            
+            Z_a = alpha*R_rot**(2.7*inputs["mod_indep_X_exp"][0])            
             # Determine CAPEX of components dependent on blade length
-            Z_b = beta*R_rot**beta_exp
+            Z_b = beta*R_rot**(inputs["mod_indep_Y_exp"][0])
             
             # Determine CAPEX of components dependent on turbine capacity
-            Z_c = gamma*(P_turb_kw/1000**gamma_exp)*1000
+            Z_c = gamma*((P_turb_kw/1000)**(inputs["mod_indep_Z_exp"][0]))*1000
 
             Z_sum = Z_a + Z_b + Z_c
             return Z_sum
@@ -419,10 +497,10 @@ class ModRM1TidalCostModel(CostModelBaseClass):
         
         # Change in turbine capital costs for initial array size
         DturbCPX = N_i*(turbCPX_f - turbCPX_i)
-        CPX_f100 = DturbCPX + CPX_i
+        CPX_f100 = DturbCPX + CPX_i * inputs["mod_indep_initial_CapEx"][0]
         
         # Change in turbine operational costs for initial array size
-        OPX_f100 = OPX_i # since altering the turbine is assumed to not change OPEX
+        OPX_f100 = OPX_i * inputs["mod_indep_initial_OpEx"][0] # since altering the turbine is assumed to not change OPEX
 
         # CAPEX and OPEX per system capacity for initial 4 unit array size
         X_cpxF100 = CPX_f100/(P_t_kw*N_i)
