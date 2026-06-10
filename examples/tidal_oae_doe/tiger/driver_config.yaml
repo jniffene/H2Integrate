@@ -28,14 +28,99 @@ design_variables:
       units: m
     device_rating:
       flag: true
-      lower: 1.115 # MW
-      upper: 3.345 # MW
-      units: MW
+      lower: 1115 # kW
+      upper: 3345 # kW
+      units: kW
+    power_coefficient:
+      flag: true
+      lower: 0.1
+      upper: 0.7
+      units: unitless
+    mod_indep_X_exp:
+      flag: true
+      lower: 0.7
+      upper: 1.3
+      units: unitless
+    mod_indep_Y_exp:
+      flag: true
+      lower: 0.7
+      upper: 1.3
+      units: unitless
+    mod_indep_Z_exp:
+      flag: true
+      lower: 0.7
+      upper: 1.3
+      units: unitless
+    mod_dep_X_exp:
+      flag: true
+      lower: 0.7
+      upper: 1.3
+      units: unitless
+    mod_dep_Y_exp:
+      flag: true
+      lower: 0.7
+      upper: 1.3
+      units: unitless
+    mod_dep_Z_exp:
+      flag: true
+      lower: 0.7
+      upper: 1.3
+      units: unitless
+    mod_indep_alpha:
+      flag: true
+      lower: 0.7
+      upper: 1.3
+      units: unitless
+    mod_indep_beta:
+      flag: true
+      lower: 0.7
+      upper: 1.3
+      units: unitless
+    mod_indep_gamma:
+      flag: true
+      lower: 0.7
+      upper: 1.3
+      units: unitless
+    mod_dep_alpha:
+      flag: true
+      lower: 0.7
+      upper: 1.3
+      units: unitless
+    mod_dep_beta:
+      flag: true
+      lower: 0.7
+      upper: 1.3
+      units: unitless
+    mod_dep_gamma:
+      flag: true
+      lower: 0.7
+      upper: 1.3
+      units: unitless
+    mod_indep_initial_CapEx:
+      flag: true
+      lower: 0.7
+      upper: 1.3
+      units: unitless
+    mod_indep_initial_OpEx:
+      flag: true
+      lower: 0.7
+      upper: 1.3
+      units: unitless
+    mod_dep_initial_CapEx:
+      flag: true
+      lower: 0.7
+      upper: 1.3
+      units: unitless
+    mod_dep_initial_OpEx:
+      flag: true
+      lower: 0.7
+      upper: 1.3
+      units: unitless
     
 
 #### Objective
 objective:
-  name: finance_subgroup_electricity.LCOE
+  name: oae.carbon_credit_value
 #   # Objective options
 #   # finance_subgroup_electricity.LCOE for tidal
 #   # finance_subgroup_oae_profast.LCOC
