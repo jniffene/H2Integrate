@@ -3,7 +3,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 # To simplify selecting between cases set options (tiger_all2nd, tiger_no2nd, modRM1)
-turbine = "tiger_all2nd"
+turbine = "modRM1"
 
 if turbine == "tiger_all2nd":
     # Need two CSV files: one for the base case and one for the sensitivity analyses
@@ -93,6 +93,7 @@ for i in range(len(sens_vars)*2):
 
 # Identify Results of Interest
 keyResults = ["lcoe", "becc"]
+keyNames = ["LCOE", "Break Even Carbon Credit Cost"]
 
 # Determine the minimum values of LCOE and BECC and their corresponding R and C values
 def keyValOpt(dict, keyResult=""):
@@ -127,16 +128,77 @@ for i in range(len(sens_vars)*2):
     for j in range(2):
         optDiff(sensDict[i+1], sensDict[0], keyResult=keyResults[j])
 
+# Calculate average change in a key value
+def avgDiff(dictI, dictBase, keyResult=""):
+    avgDiffName = "avgDiff_" + keyResult
+    iVals = dictI[keyResult]
+    baseVals = dictBase[keyResult]
+    diffVals = iVals - baseVals
+    percVals = diffVals / baseVals
+    dictI[avgDiffName] = np.mean(percVals)
+    return
+
+for i in range(len(sens_vars)*2):
+    for j in range(2):
+        avgDiff(sensDict[i+1], sensDict[0], keyResult=keyResults[j])
+
 # print(sensDict[34])
 # print(sensDict[0])
 
-# Create one plot for LCOE alone first (no subplots)
-# for i in range(len(sens_vars)*2):
-#     if i % 2 == 0:
-#         col = int(i/2)
-#         sensModVars[i] = sensNames[col]
-#         sensModTypes[i] = "+30%"
-#     else: 
-#         col = int((i-1)/2)
-#         sensModVars[i] = sensNames[col]
-#         sensModTypes[i] = "-30%"
+# Create one plot for LCOE alone first
+# Obtain the avgDiff percentages for the different cases separated by the +/- 30% options
+def sensBarPlotPlusMinusSplit(keyResult):
+    plus30_valDiff = np.zeros(len(sens_vars))
+    minus30_valDiff = np.zeros(len(sens_vars))
+    p = 0
+    m = 0
+    avgDiffName = "avgDiff_" + keyResult
+
+    for i in range(len(sens_vars)*2):
+        if sensDict[i+1]["modType"] == '+30%':
+            plus30_valDiff[p] = sensDict[i+1][avgDiffName] * 100
+            p = p+1
+        elif sensDict[i+1]["modType"] == '-30%':
+            minus30_valDiff[m] = sensDict[i+1][avgDiffName] * 100
+            m = m+1
+    return plus30_valDiff, minus30_valDiff
+
+plus30_lcoeDiff, minus30_lcoeDiff = sensBarPlotPlusMinusSplit(keyResults[0])
+
+
+varSymbols = [r"$c_{\text{p}}$", r"$x_{\text{indep}}$", r"$y_{\text{indep}}$", r"$z_{\text{indep}}$", r"$x_{\text{dep}}$", r"$y_{\text{dep}}$", r"$z_{\text{dep}}$", r"$ \alpha _{\text{indep}}$", r"$ \beta _{\text{indep}}$", r"$ \gamma _{\text{indep}}$", r"$ \alpha _{\text{dep}}$", r"$ \beta _{\text{dep}}$", r"$ \gamma _{\text{dep}}$", r"$C_{\text{indep}}$", r"$O_{\text{indep}}$", r"$C_{\text{dep}}$", r"$O_{\text{dep}}$"]
+# varSymbols.reverse()
+# print(plus30_lcoeDiff)
+# print(varSymbols)
+
+
+
+# # Plot the LCOE changes
+# X = np.arange(len(sensNames))
+# fig, ax = plt.subplots()
+# ax.barh(X, plus30_lcoeDiff)
+# ax.barh(X, minus30_lcoeDiff)
+# ax.invert_yaxis()
+# ax.legend(["Parameter change by +30%", "Parameter change by -30%"])
+# ax.set_yticks(X, labels=varSymbols)
+# ax.plot([30,30],[-1, len(sensNames)], "k--")
+# ax.plot([-30,-30],[-1, len(sensNames)], "k--")
+# ax.set_xlabel("Change of LCOE [% to reference]")
+# ax.set_title(f"Average Change in LCOE for {turbineName}")
+# plt.show()
+
+for k in range(len(keyResults)-1):
+    plus30_valDiff, minus30_valDiff = sensBarPlotPlusMinusSplit(keyResults[k])
+    X = np.arange(len(sensNames))
+    fig, ax = plt.subplots(figsize=(7.8,4.8))
+    ax.barh(X, plus30_valDiff)
+    ax.barh(X, minus30_valDiff)
+    ax.invert_yaxis()
+    ax.legend(["Parameter change by +30%", "Parameter change by -30%"], loc="center right")
+    ax.set_yticks(X, labels=varSymbols)
+    ax.plot([30,30],[-1, len(sensNames)], "k--")
+    ax.plot([-30,-30],[-1, len(sensNames)], "k--")
+    ax.set_xlabel(f"Change of {keyNames[k]} [% to reference]")
+    ax.set_title(f"Average Change in {keyNames[k]} for {turbineName}")
+    plt.savefig(f"{turbine}_{keyResults[k]}_sensBarPlot.png", dpi = 300, bbox_inches='tight')
+    plt.close()
