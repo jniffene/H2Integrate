@@ -434,6 +434,19 @@ class OAECostAndFinancialModel(CostModelBaseClass):
             desc="Annual energy input to the OAE",
         )
         self.add_input(
+            "rated_electricity_production",
+            val=0.0,
+            units="kW",
+            desc="Rated electricity production of energy source",
+        )
+        self.add_input(
+            "electricity_capacity_factor",
+            val=0.0,
+            shape=plant_life,
+            units="unitless",
+            desc="Capacity factor of electricity source",
+        )
+        self.add_input(
             "unused_energy",
             val=0.0,
             shape=n_timesteps,
@@ -510,16 +523,24 @@ class OAECostAndFinancialModel(CostModelBaseClass):
 
     def compute(self, inputs, outputs, discrete_inputs, discrete_outputs):
         """Model assume that you only pay for the energy you use for OAE."""
-        if not inputs["annual_input_electricity"][0]:
+        if not inputs["annual_input_electricity"][0] and not (inputs["rated_electricity_production"][0] and inputs["electricity_capacity_factor"][0]):
             msg = (
                 "the annual_input_electricity needs to be connected to "
                 "an annual electricity stream in the technology_interconnections "
-                "in the plant_config."
+                "in the plant_config or rated_electricity_production and "
+                "electricity_capacity_factor need to be connected if "
+                "annual_input_electricity is not available."
             )
             raise AttributeError(msg)
-        annual_energy_cost_usd_yr = inputs["LCOE"] * (
-            inputs["annual_input_electricity"][0] - (sum(inputs["unused_energy"]))
-        )  # remove unused power from the annual energy cost only used power considered
+        if inputs["annual_input_electricity"][0]:
+            annual_energy_cost_usd_yr = inputs["LCOE"] * (
+                inputs["annual_input_electricity"][0] - (sum(inputs["unused_energy"]))
+            )  # remove unused power from the annual energy cost only used power considered
+        else:
+            annual_input_electricity = inputs["rated_electricity_production"][0] * inputs["electricity_capacity_factor"][0] * 8760
+            annual_energy_cost_usd_yr = inputs["LCOE"] * (
+                annual_input_electricity - (sum(inputs["unused_energy"]))
+            )  # remove unused power from the annual energy cost only used power considered
         costs = echem_oae.OAECosts(
             mass_product=inputs["mass_sellable_product"][0],
             value_product=inputs["value_products"][0],
