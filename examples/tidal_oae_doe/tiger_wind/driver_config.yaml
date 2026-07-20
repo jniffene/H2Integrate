@@ -28,19 +28,19 @@ design_variables:
       units: m
     device_rating:
       flag: true
-      lower: 2000 # kW
-      upper: 6000 # kW
+      lower: 1115 # kW
+      upper: 3345 # kW
       units: kW
     num_devices:
       flag: true
-      lower: 35
-      upper: 65
+      lower: 15
+      upper: 35
       units: unitless
   wind:
     num_turbines:
       flag: true
-      lower: 35
-      upper: 65
+      lower: 15
+      upper: 35
       units: unitless
 
 #### Objective

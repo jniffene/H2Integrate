@@ -3,19 +3,14 @@ description: This plant produces electricity from tidal and wind to power an off
 technologies:
   tidal:
     performance_model:
-      model: TigerTidalPerformanceModel
+      model: ModRM1TidalPerformanceModel
     cost_model:
-      model: TigerTidalCostModel
+      model: ModRM1TidalCostModel
     model_inputs:
       shared_parameters:
-        device_rating_kw: 2000  # Based on the baseline TIGER
-        num_devices: 25
+        device_rating_kw: 1115  # Based on the baseline RM1
+        num_devices: 50
         rotor_radius: 10
-      cost_parameters:
-        sub_sea_hubs:        false
-        standard_wet_mates:  false
-        piled_foundations:   false
-        advanced_blade_mats: false
   wind:
     performance_model:
       model: FlorisWindPlantPerformanceModel

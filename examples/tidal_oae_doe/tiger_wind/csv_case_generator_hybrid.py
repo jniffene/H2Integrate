@@ -14,9 +14,9 @@ r_end = 30
 r_step = 1
 rotor_radii = np.arange(r_start, r_end+r_step, r_step)
 
-Pt_start = 2000
-Pt_end = 6000
-Pt_step = 1000
+Pt_start = 1115
+Pt_end = 1115*3
+Pt_step = 1115/2
 capacity_vals = np.arange(Pt_start, Pt_end+Pt_step, Pt_step)
 
 # fractions of array that is wind
@@ -43,7 +43,7 @@ for i in range(len(windFracs)):
     vals[i*rp:(i+1)*rp, 2] = round((1-windFracs[i])*vals[i*rp,2]) # tidal 
     vals[i*rp:(i+1)*rp, 3] = round(windFracs[i]*vals[i*rp,3]) # wind
 
-print(vals)
+# print(vals)
 
 # for i in range(len(sens_vars)*2):
 #     if i % 2 == 0:
