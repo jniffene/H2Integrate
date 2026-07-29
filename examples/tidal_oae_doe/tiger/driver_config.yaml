@@ -10,7 +10,7 @@ driver:
     flag: true
     debug_print: true
     generator: csvgen
-    filename: sensitivity_input_cases_extra.csv
+    filename: input_cases.csv
   optimization:
     flag: false
     tol: 0.1
@@ -32,7 +32,7 @@ design_variables:
       upper: 6000 # kW
       units: kW
     num_devices:
-      flag: true
+      flag: false
       lower: 35
       upper: 65
       units: unitless

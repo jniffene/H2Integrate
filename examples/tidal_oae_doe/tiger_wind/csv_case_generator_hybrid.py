@@ -16,7 +16,7 @@ rotor_radii = np.arange(r_start, r_end+r_step, r_step)
 
 Pt_start = 2000
 Pt_end = 6000
-Pt_step = 1000
+Pt_step = 2000
 capacity_vals = np.arange(Pt_start, Pt_end+Pt_step, Pt_step)
 
 # fractions of array that is wind

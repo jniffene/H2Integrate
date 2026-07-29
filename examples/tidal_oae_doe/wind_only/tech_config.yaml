@@ -1,21 +1,6 @@
 name: technology_config
 description: This plant produces electricity from tidal and wind to power an off-grid OAE plant.
 technologies:
-  tidal:
-    performance_model:
-      model: TigerTidalPerformanceModel
-    cost_model:
-      model: TigerTidalCostModel
-    model_inputs:
-      shared_parameters:
-        device_rating_kw: 2000  # Based on the baseline TIGER
-        num_devices: 25
-        rotor_radius: 10
-      cost_parameters:
-        sub_sea_hubs:        true
-        standard_wet_mates:  true
-        piled_foundations:   true
-        advanced_blade_mats: true
   wind:
     performance_model:
       model: FlorisWindPlantPerformanceModel
@@ -23,7 +8,7 @@ technologies:
       model: ATBWindPlantCostModel
     model_inputs:
       performance_parameters:
-        num_turbines: 25  # number of turbines in the farm
+        num_turbines: 50  # number of turbines in the farm
         hub_height: 80.0  # turbine hub-height
         operational_losses: 12.83  # percentage of non-wake losses
         floris_wake_config: !include "floris_v4_default_template.yaml" #floris wake model file
@@ -45,13 +30,6 @@ technologies:
         capex_per_kW: 1380.0
         opex_per_kW_per_year: 29.0
         cost_year: 2022
-  combiner:
-    performance_model:
-      model: GenericCombinerPerformanceModel
-    model_inputs:
-      performance_parameters:
-        commodity: electricity
-        commodity_rate_units: kW
   oae:
     performance_model:
       model: OAEPerformanceModel

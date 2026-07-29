@@ -2,23 +2,24 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 from cycler import cycler
+from matplotlib.lines import Line2D
 
 # To simplify selecting between cases set options (tiger_all2nd, tiger_no2nd, modRM1)
-turbine = "modRM1"
+turbine = "tiger_all2nd"
 
 if turbine == "tiger_all2nd":
     # Need two CSV files: one for the base case and one for the hybrid/sensitivity analyses
     baseCSVfile = "../tiger/outputs/100kt_50x_2-6MW_Cook_Inlet_1M_rca_tiger_all2nd.csv"
     sensCSVfile = "outputs/hybrid_tiger_all2nd_30-50-70_wind.csv"
-    turbineName = "50 Unit Hybrid Arrays: Wind and TIGER with All Secondary Improvements"
+    turbineName = "50 Unit Hybrid Arrays: 1.5 MW Wind & TIGER with All Secondary Improvements"
 elif turbine == "tiger_no2nd":
     baseCSVfile = "../tiger/outputs/100kt_50x_2-6MW_Cook_Inlet_1M_rca_tiger_no2nd.csv"
     sensCSVfile = "outputs/hybrid_tiger_no2nd_30-50-70_wind.csv"
-    turbineName = "50 Unit Hybrid Arrays: Wind and TIGER with No Secondary Improvements"
+    turbineName = "50 Unit Hybrid Arrays: 1.5 MW Wind & TIGER with No Secondary Improvements"
 elif turbine == "modRM1":
     baseCSVfile = "../tiger/outputs/100kt_50x_1-3MW_Cook_Inlet_1M_rca_modRM1.csv"
     sensCSVfile = "outputs/hybrid_modRM1_30-50-70_wind.csv"
-    turbineName = "50 Unit Hybrid Arrays: Wind and RM1"
+    turbineName = "50 Unit Hybrid Arrays: 1.5 MW Wind & RM1"
 
 # Define the values used on the x,y,z axes
 relVals = ['tidal.rotor_radius (m)', 'tidal.device_rating (kW)', 'finance_subgroup_electricity.LCOE (USD/kW/h)', 'oae.carbon_credit_value (USD/t)']
@@ -39,16 +40,20 @@ def rad_and_cap_for_lcoe_and_becc(csvFileName, relCols=relVals, nrows=None, skip
     radii = np.unique(mat[:,0]).tolist()
     # print(len(radii*2))
     capacities = np.unique(mat[:,1]).tolist()
+    
+    # adjust the capacity step from 0.5x to 1x
+    capacities = [capacities[0], 2*capacities[0], 3*capacities[0]]
     # print(capacities)
 
     # Rearrange target results to be rows as radii and cols as capacities
     lcoe_results = np.zeros((len(radii), len(capacities)))
     becc_results = np.zeros((len(radii), len(capacities)))
     for i in range(len(mat[:,0])):
-        r = radii.index(mat[i,0])
-        c = capacities.index(mat[i,1])
-        lcoe_results[r,c] = mat[i,2]
-        becc_results[r,c] = mat[i,3]
+        if mat[i,1] in capacities:
+            r = radii.index(mat[i,0])
+            c = capacities.index(mat[i,1])
+            lcoe_results[r,c] = mat[i,2]
+            becc_results[r,c] = mat[i,3]
 
     caseDict = {
         "modVar": modVar,
@@ -66,7 +71,7 @@ def rad_and_cap_for_lcoe_and_becc(csvFileName, relCols=relVals, nrows=None, skip
 baseDict = rad_and_cap_for_lcoe_and_becc(baseCSVfile, modVar="Base", modType="0% Wind")
 
 # Define interval for cases in sensitivity analysis
-rp = len(baseDict["radii"]) * len(baseDict["capacities"])
+rp = len(baseDict["radii"]) * (len(baseDict["capacities"])+2)
 
 # Define variable names and modification types for sensDict
 sensModVars = [""] * len(sens_vars) * 3
@@ -91,13 +96,21 @@ keyNames = ["LCOE", "Break Even Carbon Credit Cost"]
 # Define consistent legend
 capsLegend = [""] * len(baseDict["capacities"])
 for i in range(len(capsLegend)):
-    capsLegend[i] = str(baseDict["capacities"][i]/1000) +" MW"
+    capsLegend[i] = str(baseDict["capacities"][i]/1000) +" MW Tidal"
 
 # Ensure colors are consistent
-cmap = plt.colormaps['Oranges']
+cmap = plt.colormaps['tab10']
 num_colors = len(baseDict["capacities"])
-colors = cmap(np.linspace(0.5, 1, num_colors))
+colors = cmap(np.linspace(0, 0.4, num_colors))
 plt.rcParams['axes.prop_cycle'] = cycler(color=colors)
+
+# Define legend for modifications
+modLegend = [
+    Line2D([0], [0], color='k', lw=1.5, linestyle='-', label ='  0 Wind | 50 Tidal'),
+    Line2D([0], [0], color='k', lw=1.5, linestyle='--', label ='15 Wind | 35 Tidal'),
+    Line2D([0], [0], color='k', lw=1.5, linestyle='-.', label ='25 Wind | 25 Tidal'),
+    Line2D([0], [0], color='k', lw=1.5, linestyle=':', label ='35 Wind | 15 Tidal'),
+]
 
 # Test Plotting Function
 # Function to make curves from dict's radii, capacities, and key values
@@ -115,7 +128,7 @@ def keyValRCcurve(dict, keyResult=""):
     elif modType == "70% Wind":
         curveStyle = ":"
     for j in range(len(capacities)):
-        plt.plot(np.multiply(radii,2), results[:, j], label = f"{capacities[j]/1000} MW", linestyle=curveStyle)
+        plt.plot(np.multiply(radii,2), results[:, j], label = f"{capacities[j]/1000} MW Tidal", linestyle=curveStyle)
 
 for k in range(len(keyResults)):
     for j in range(len(sens_vars)):
@@ -125,8 +138,11 @@ for k in range(len(keyResults)):
         plt.xlabel("Rotor Diameter (m)")
         plt.ylabel(keyFullNames[k])
         plt.title(f"{keyNames[k]} vs Tidal Rotor Diameter & Device Capacity\n({turbineName})")
-        plt.legend(capsLegend)
+        first_legend = plt.legend(capsLegend, loc='upper right')
+        plt.gca().add_artist(first_legend)
+        plt.legend(handles = modLegend, loc='upper center')
         plt.minorticks_on()
         plt.grid(which='major', linestyle='-', linewidth='0.8', color='gray')
-        plt.savefig(f"{turbine}_{keyResults[k]}_hybrid_30-50-70_wind.png", dpi = 300, bbox_inches='tight')
+        # plt.show()
+        plt.savefig(f"{turbine}_{keyResults[k]}_hybrid_30-50-70_wind_3cap.png", dpi = 300, bbox_inches='tight')
         plt.close()

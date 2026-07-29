@@ -2,9 +2,10 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 from cycler import cycler
+from matplotlib.lines import Line2D
 
 # To simplify selecting between cases set options (tiger_all2nd, tiger_no2nd, modRM1)
-turbine = "modRM1"
+turbine = "tiger_no2nd"
 
 if turbine == "tiger_all2nd":
     # Need two CSV files: one for the base case and one for the hybrid/sensitivity analyses
@@ -94,10 +95,18 @@ for i in range(len(capsLegend)):
     capsLegend[i] = str(baseDict["capacities"][i]/1000) +" MW"
 
 # Ensure colors are consistent
-cmap = plt.colormaps['Oranges']
+cmap = plt.colormaps['tab10']
 num_colors = len(baseDict["capacities"])
-colors = cmap(np.linspace(0.5, 1, num_colors))
+colors = cmap(np.linspace(0, 0.5, num_colors))
 plt.rcParams['axes.prop_cycle'] = cycler(color=colors)
+
+# Define legend for modifications
+modLegend = [
+    Line2D([0], [0], color='k', lw=1.5, linestyle='-', label ='  0 Wind | 50 Tidal'),
+    Line2D([0], [0], color='k', lw=1.5, linestyle='--', label ='15 Wind | 35 Tidal'),
+    Line2D([0], [0], color='k', lw=1.5, linestyle='-.', label ='25 Wind | 25 Tidal'),
+    Line2D([0], [0], color='k', lw=1.5, linestyle=':', label ='35 Wind | 15 Tidal'),
+]
 
 # Test Plotting Function
 # Function to make curves from dict's radii, capacities, and key values
@@ -125,8 +134,11 @@ for k in range(len(keyResults)):
         plt.xlabel("Rotor Diameter (m)")
         plt.ylabel(keyFullNames[k])
         plt.title(f"{keyNames[k]} vs Tidal Rotor Diameter & Device Capacity\n({turbineName})")
-        plt.legend(capsLegend)
+        first_legend = plt.legend(capsLegend, loc='upper right')
+        plt.gca().add_artist(first_legend)
+        plt.legend(handles = modLegend, loc='upper center')
         plt.minorticks_on()
         plt.grid(which='major', linestyle='-', linewidth='0.8', color='gray')
+        # plt.show()
         plt.savefig(f"{turbine}_{keyResults[k]}_hybrid_30-50-70_wind.png", dpi = 300, bbox_inches='tight')
         plt.close()
