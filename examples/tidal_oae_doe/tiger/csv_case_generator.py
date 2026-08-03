@@ -5,8 +5,8 @@ import numpy as np
 vars = ["tidal.rotor_radius", "tidal.device_rating"]
 
 # Vary the rotor radius and capacity
-r_start = 5
-r_end = 50
+r_start = 10
+r_end = 30
 r_step = 1
 rotor_radii = np.arange(r_start, r_end+r_step, r_step)
 

@@ -1,12 +1,12 @@
 name: plant_config
 description: This plant is located in Alaska
 sites:
-  tidal_site:
-    latitude: 60.6975
-    longitude: -151.6187
+  # tidal_site:
+  #   latitude: 60.6975
+  #   longitude: -151.6187
   wind_site:
-    latitude:   60.714906  #Kustatan 
-    longitude: -151.714237 #Kustatan 
+    latitude:   60.714906  #Kustatan #61.130761   #FireIsland # 60.526090  #TooksookBay   # 
+    longitude: -151.714237 #Kustatan #-150.235106 #FireIsland #-165.114481 #TooksookBay  #  
     resources:
       wind_resource:
         resource_model: WTKNLRDeveloperAPIWindResource # OpenMeteoHistoricalWindResource 
@@ -15,6 +15,7 @@ sites:
           # timezone: -8
           resource_dir: \Users\jniffene\Documents\GitHub\H2Integrate\examples\tidal_oae_doe\wind_only\resourceFiles
           resource_filename: 948526_60.70_-151.70_2018_Kustatan.csv
+
     # resources:
     #   tidal_resource:
     #     resource_model: TidalResource
@@ -28,12 +29,9 @@ sites:
 # and not connected to additional technologies.
 # hence the empty array.
 technology_interconnections:
-  - [wind, combiner, electricity, cable]
-  - [tidal, combiner, electricity, cable]
-  - [combiner, oae, electricity, cable]
+  - [wind, oae, electricity, cable]
   - [finance_subgroup_electricity, oae, LCOE]
-  - [combiner, oae, [capacity_factor, electricity_capacity_factor]]
-  - [combiner, oae, rated_electricity_production]
+  - [wind, oae, [annual_electricity_produced, annual_input_electricity]]
 # resource interconnections
 # array of arrays containing left-to-right resource interconnections;
 resource_to_tech_connections:
@@ -68,15 +66,14 @@ finance_parameters:
   finance_subgroups:
     electricity:
       commodity: electricity
-      commodity_stream: combiner  # use the total electricity output from the combiner for the finance calc
-      technologies: [tidal, wind]
+      technologies: [wind]
     oae:
       commodity: co2
       finance_groups: [oae]
       technologies: [oae]
     oae_profast:
       commodity: co2
-      technologies: [oae, tidal, wind]
+      technologies: [oae, wind]
   cost_adjustment_parameters:
     cost_year_adjustment_inflation: 0.025  # 2.5% inflation rate for cost adjustments
     target_dollar_year: 2025
