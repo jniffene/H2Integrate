@@ -5,14 +5,17 @@ sites:
   #   latitude: 60.6975
   #   longitude: -151.6187
   wind_site:
-    latitude: 60.526090 #TooksookBay # 61.130761 #FireIsland  # 60.714906 #Kustatan 
-    longitude: -165.114481 #TooksookBay # -150.235106 #FireIsland # -151.714237 #Kustatan 
+    latitude:   60.714906  #Kustatan #61.130761   #FireIsland # 60.526090  #TooksookBay   # 
+    longitude: -151.714237 #Kustatan #-150.235106 #FireIsland #-165.114481 #TooksookBay  #  
     resources:
       wind_resource:
-        resource_model: OpenMeteoHistoricalWindResource # WTKNLRDeveloperAPIWindResource
+        resource_model: WTKNLRDeveloperAPIWindResource # OpenMeteoHistoricalWindResource 
         resource_parameters:
-          resource_year: 2018 # 2007
-          timezone: -8
+          resource_year: 2012 # 2007
+          # timezone: -8
+          resource_dir: \Users\jniffene\Documents\GitHub\H2Integrate\examples\tidal_oae_doe\wind_only\resourceFiles
+          resource_filename: 948526_60.70_-151.70_2018_Kustatan.csv
+
     # resources:
     #   tidal_resource:
     #     resource_model: TidalResource
