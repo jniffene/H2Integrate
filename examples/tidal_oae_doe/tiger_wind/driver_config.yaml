@@ -10,7 +10,7 @@ driver:
     flag: true
     debug_print: true
     generator: csvgen
-    filename: hybrid_input_cases.csv
+    filename: hybrid_input_cases_1cap.csv
   optimization:
     flag: false
     tol: 0.1
@@ -39,8 +39,8 @@ design_variables:
   wind:
     num_turbines:
       flag: true
-      lower: 15
-      upper: 35
+      lower: 30
+      upper: 70
       units: unitless
 
 #### Objective
