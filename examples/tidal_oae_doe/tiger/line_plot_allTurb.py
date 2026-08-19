@@ -60,8 +60,8 @@ print(totDict)
 
 # Plot key results for the cases
 keyResults = ["lcoe", "becc"]
-keyFullNames = ["LCOE ($/kWh)", "Break Even Carbon Credit Cost ($/tCO2)"]
-keyNames = ["LCOE", "Break Even Carbon Credit Cost"]
+keyFullNames = ["LCOE ($/kWh)", r"Break-Even Carbon Credit Cost (\$/tCO$_2$)"]
+keyNames = ["LCOE", "Break-Even Carbon Credit Cost"]
 
 # Define consistent legend
 capsLegend = [""] * len(baseDict["capacities"])
