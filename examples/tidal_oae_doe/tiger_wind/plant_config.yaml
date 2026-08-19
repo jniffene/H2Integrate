@@ -14,7 +14,7 @@ sites:
           resource_year: 2012 # 2007
           # timezone: -8
           resource_dir: \Users\jniffene\Documents\GitHub\H2Integrate\examples\tidal_oae_doe\wind_only\resourceFiles
-          resource_filename: 948526_60.70_-151.70_2018_Kustatan.csv
+          resource_filename: 948526_60.70_-151.70_2019_Kustatan_120m.csv
     # resources:
     #   tidal_resource:
     #     resource_model: TidalResource

@@ -7,7 +7,7 @@ from matplotlib.lines import Line2D
 # Turbine set to only modRM1
 turbine = "modRM1"
 baseCSVfile = "../tiger/outputs/3,4MW_modRM1.csv"
-sensCSVfile = "outputs/hybrid_1cap_modRM1_3,4MW_30-50-70_wind.csv"
+sensCSVfile = "outputs/hybrid_1cap_modRM1_3,4MW_30-50-70_wind_V2.csv"
 turbineName = "50 Unit Hybrid Arrays: 3.4 MW Wind & 3.4 MW RM1"
 
 # Define the values used on the x,y,z axes
