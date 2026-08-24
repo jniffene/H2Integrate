@@ -11,11 +11,11 @@ if turbine == "tiger_all2nd":
     # Need two CSV files: one for the base case and one for the hybrid/sensitivity analyses
     baseCSVfile = "../tiger/outputs/100kt_50x_2-6MW_Cook_Inlet_1M_rca_tiger_all2nd.csv"
     sensCSVfile = "outputs/hybrid_tiger_all2nd_30-50-70_wind_V2.csv"
-    turbineName = "50 Unit Hybrid Arrays: 1.5 MW Wind & TIGER with All Secondary Improvements"
+    turbineName = "50 Unit Hybrid Arrays: 1.5 MW Wind &\nTIGER with All Secondary Improvements"
 elif turbine == "tiger_no2nd":
     baseCSVfile = "../tiger/outputs/100kt_50x_2-6MW_Cook_Inlet_1M_rca_tiger_no2nd.csv"
     sensCSVfile = "outputs/hybrid_tiger_no2nd_30-50-70_wind_V2.csv"
-    turbineName = "50 Unit Hybrid Arrays: 1.5 MW Wind & TIGER with No Secondary Improvements"
+    turbineName = "50 Unit Hybrid Arrays: 1.5 MW Wind &\nTIGER with No Secondary Improvements"
 elif turbine == "modRM1":
     baseCSVfile = "../tiger/outputs/100kt_50x_1-3MW_Cook_Inlet_1M_rca_modRM1.csv"
     sensCSVfile = "outputs/hybrid_modRM1_30-50-70_wind_V2.csv"
@@ -104,8 +104,8 @@ for i in range(len(sens_vars)*3):
 
 # Plot key results for the cases
 keyResults = ["lcoe", "becc"]
-keyFullNames = ["LCOE ($/kWh)", "Break Even Carbon Credit Cost ($/tCO2)"]
-keyNames = ["LCOE", "Break Even Carbon Credit Cost"]
+keyFullNames = ["LCOE ($/kWh)", r"Break-Even Carbon Credit Cost (\$/tCO$_2$)"]
+keyNames = ["LCOE", "Break-Even Carbon Credit Cost\n"]
 
 # Define consistent legend
 capsLegend = [""] * len(baseDict["capacities"])
@@ -162,5 +162,5 @@ for k in range(len(keyResults)):
         plt.plot(np.multiply(rotor_radii,2), keyVals_wind_CookInlet[:,k], color='grey', linestyle='-')
         # plt.plot(np.multiply(rotor_radii,2), keyVals_wind_ToksookBay[:,k], color='dimgrey', linestyle='-')
         # plt.show()
-        plt.savefig(f"{turbine}_{keyResults[k]}_hybrid_30-50-70_wind_3cap_V2.png", dpi = 300, bbox_inches='tight')
+        plt.savefig(f"{turbine}_{keyResults[k]}_hybrid_30-50-70_wind_3cap_V4.png", dpi = 300, bbox_inches='tight')
         plt.close()
