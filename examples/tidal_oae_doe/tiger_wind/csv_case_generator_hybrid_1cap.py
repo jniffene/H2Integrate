@@ -14,7 +14,7 @@ r_end = 30
 r_step = 1
 rotor_radii = np.arange(r_start, r_end+r_step, r_step)
 
-capacity_vals = 3400
+capacity_vals = 2400
 
 # fractions of array that is wind
 windFracs = [0.3, 0.5, 0.7]
