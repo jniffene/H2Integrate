@@ -22,7 +22,7 @@ class ReverseOsmosisPerformanceModelConfig(BaseConfig):
     """
 
     freshwater_kg_per_hour: float = field(validator=gt_zero)
-    salinity: str = field(validator=contains(["seawater", "brackish"]))
+    salinity: str = field(validator=contains(["seawater", "brackish", "seawater_oae"]))
     freshwater_density: float = field(validator=gt_zero, default=997)
 
 
@@ -76,22 +76,45 @@ class ReverseOsmosisPerformanceModel(DesalinationPerformanceBaseClass):
 
             desal_power = freshwater_m3_per_hr * energy_conversion_factor
 
-            """Note: Mass and Footprint
-            Based on Commercial Industrial RO Systems
-            https://www.appliedmembranes.com/s-series-seawater-reverse-osmosis-systems-2000-to-100000-gpd.html
+        if self.config.salinity == "seawater_oae":
+            # Impacts of OAE
+            # Energy reduction
+            energy_reduction_via_OAE = 0.15
 
-            All Mass and Footprint Estimates are estimated from Largest RO System:
-            S-308F
-            -436 m^3/day
-            -6330 kg
-            -762 cm (L) x 112 cm (D) x 183 cm (H)
+            # Change in freshwater production
+            change_in_freshwater_via_OAE = 0.1
 
-            436 m^3/day = 18.17 m^3/hr = 8.5 m^2, 6330 kg
-            1 m^3/hr = .467 m^2, 346.7 kg
+            # Power required
+            energy_conversion_factor = (
+                4.0*(1-energy_reduction_via_OAE)  # [kWh/m^3] SWRO energy_conversion_factor range 2.5 to 4.0 kWh/m^3
+            )
+            # https://www.sciencedirect.com/science/article/pii/S0011916417321057
+            desal_power = freshwater_m3_per_hr * energy_conversion_factor
 
-            Voltage Codes
-            460 or 480v/ 3ph/ 60 Hz
-            """
+            # Water recovery
+            recovery_ratio = 0.5  # https://www.usbr.gov/research/dwpr/reportpdfs/report072.pdf
+            feedwater_m3_per_hr = freshwater_m3_per_hr / recovery_ratio # does not change due to OAE
+
+            # OAE can increase freshwater production (accounted for after other calculations are made)
+            freshwater_m3_per_hr = freshwater_m3_per_hr * (1+change_in_freshwater_via_OAE)
+
+
+        """Note: Mass and Footprint
+        Based on Commercial Industrial RO Systems
+        https://www.appliedmembranes.com/s-series-seawater-reverse-osmosis-systems-2000-to-100000-gpd.html
+
+        All Mass and Footprint Estimates are estimated from Largest RO System:
+        S-308F
+        -436 m^3/day
+        -6330 kg
+        -762 cm (L) x 112 cm (D) x 183 cm (H)
+
+        436 m^3/day = 18.17 m^3/hr = 8.5 m^2, 6330 kg
+        1 m^3/hr = .467 m^2, 346.7 kg
+
+        Voltage Codes
+        460 or 480v/ 3ph/ 60 Hz
+        """
         desal_mass_kg = freshwater_m3_per_hr * 346.7  # [kg]
         desal_size_m2 = freshwater_m3_per_hr * 0.467  # [m^2]
 
