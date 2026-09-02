@@ -17,6 +17,9 @@ def setup_ocean_alkalinity_enhancement_inputs(config):
         N_edMax=config.number_ed_max,
         assumed_CDR_rate=config.assumed_CDR_rate,
         Q_edMax=config.max_ed_system_flow_rate_m3s,
+        P_edMax = config.max_ed_system_power_w,
+        c_a = config.ed_acid_concentration,
+        c_b = config.ed_base_concentration,
         frac_baseFlow=config.frac_base_flow,
         use_storage_tanks=config.use_storage_tanks,
         store_hours=config.store_hours,
@@ -35,7 +38,10 @@ class OAEPerformanceConfig(BaseConfig):
         store_hours (float): Number of hours of CO₂ storage capacity (hours).
         assumed_CDR_rate (float): Mole of CO2 per mole of NaOH (unitless).
         frac_base_flow (float): Fraction of base flow in the system (unitless).
-        max_ed_system_flow_rate_m3s (float): Maximum flow rate through the ED system (m³/s).
+        max_ed_system_flow_rate_m3s (float): Maximum flow rate through the ED system (m³/s). Default is 0.0324 m³/s.
+        max_ed_system_power_w (float): Total ED system power (W). Default is 3.5 MW. 
+        ed_acid_concentration (float): Concentration of generated acid (mol/L). Default is 0.49.
+        ed_base_concentration (float): Concentration of generated base (mol/L). Default is 0.54.
         initial_temp_C (float): Temperature of input seawater (°C).
         initial_salinity_ppt (float): Initial salinity of seawater (ppt).
         initial_dic_mol_per_L (float): Initial dissolved inorganic carbon (mol/L).
@@ -54,6 +60,9 @@ class OAEPerformanceConfig(BaseConfig):
     assumed_CDR_rate: float = field(validator=range_val(0, 1))
     frac_base_flow: float = field(validator=range_val(0, 1))
     max_ed_system_flow_rate_m3s: float = field(validator=gt_zero)
+    max_ed_system_power_w: float = field(validator=gt_zero)
+    ed_acid_concentration: float = field(validator=gt_zero)
+    ed_base_concentration: float = field(validator=gt_zero)
     initial_temp_C: float = field(validator=gte_zero)
     initial_salinity_ppt: float = field(validator=gte_zero)
     initial_dic_mol_per_L: float = field(validator=gte_zero)
@@ -68,6 +77,11 @@ class OAEPerformanceConfig(BaseConfig):
 
 class OAEPerformanceModel(PerformanceModelBaseClass):
     """OpenMDAO component for modeling Ocean Alkalinity Enhancement (OAE) performance."""
+
+    _time_step_bounds = (
+        3600,
+        3600,
+    )  # (min, max) time step lengths (in seconds) compatible with this model
 
     def initialize(self):
         super().initialize()
@@ -89,6 +103,23 @@ class OAEPerformanceModel(PerformanceModelBaseClass):
             units="W",
             desc="Hourly input electricity (W)",
         )
+
+        # ## Inputs that alter OAE plant design
+        # self.add_input(
+        #     "max_ed_system_flow_rate",
+        #     val=self.config.max_ed_system_flow_rate_m3s,
+        #     units="m**3/s",
+        #     desc="Maximum flow rate through the ED system",
+        # )
+
+        # self.add_input(
+        #     "max_ed_system_power",
+        #     val=self.config.max_ed_system_power_w,
+        #     units="W",
+        #     desc="Total ED system power (W)",
+        # )
+
+        ## Outputs
         self.add_output(
             "alkaline_seawater_flow_rate",
             shape=self.n_timesteps,
@@ -163,7 +194,7 @@ class OAEPerformanceModel(PerformanceModelBaseClass):
             desc="Cost of acid disposal",
         )
         self.add_output(
-            "based_added_seawater_max_power",
+            "base_added_seawater_max_power",
             val=0.0,
             units="mol/year",
             desc="Maximum power for base added seawater per year",
@@ -180,6 +211,12 @@ class OAEPerformanceModel(PerformanceModelBaseClass):
             shape=self.n_timesteps,
             units="W",
             desc="Unused energy unused by OAE system",
+        )
+        self.add_output(
+            "availability_factor",
+            val =0.0,
+            units="unitless",
+            desc="Fraction of time system is on",
         )
 
     def compute(self, inputs, outputs):
@@ -223,6 +260,7 @@ class OAEPerformanceModel(PerformanceModelBaseClass):
             oae_outputs.M_co2est * 1e3
         )  # convert from metric tons/year to kg/year
         outputs["capacity_factor"] = oae_outputs.oae_capacity_factor
+        outputs["availability_factor"] = oae_outputs.overall_capacity_factor
         outputs["alkaline_seawater_flow_rate"] = oae_outputs.OAE_outputs["Qout"]
         outputs["alkaline_seawater_pH"] = oae_outputs.OAE_outputs["pH_f"]
         outputs["alkaline_seawater_dic"] = oae_outputs.OAE_outputs["dic_f"]
@@ -234,7 +272,7 @@ class OAEPerformanceModel(PerformanceModelBaseClass):
         outputs["value_products"] = oae_outputs.X_rev_yr
         outputs["mass_acid_disposed"] = oae_outputs.M_disposed_yr
         outputs["cost_acid_disposal"] = oae_outputs.X_disp
-        outputs["based_added_seawater_max_power"] = oae_outputs.mol_OH_yr_MaxPwr
+        outputs["base_added_seawater_max_power"] = oae_outputs.mol_OH_yr_MaxPwr
         outputs["mass_rca"] = oae_outputs.slurry_mass_max
         outputs["unused_energy"] = oae_outputs.OAE_outputs["P_xs"]
 
@@ -254,6 +292,11 @@ class OAECostModel(CostModelBaseClass):
     """OpenMDAO component for computing capital (CapEx) and operational (OpEx) costs of a
     ocean alkalinity enhancement (OAE) system.
     """
+
+    _time_step_bounds = (
+        3600,
+        3600,
+    )  # (min, max) time step lengths (in seconds) compatible with this model
 
     def initialize(self):
         super().initialize()
@@ -303,7 +346,7 @@ class OAECostModel(CostModelBaseClass):
             desc="Cost of acid disposal",
         )
         self.add_input(
-            "based_added_seawater_max_power",
+            "base_added_seawater_max_power",
             val=0.0,
             units="mol/year",
             desc="Maximum power for base added seawater per year",
@@ -322,7 +365,7 @@ class OAECostModel(CostModelBaseClass):
             waste_mass=inputs["mass_acid_disposed"][0],
             waste_disposal_cost=inputs["cost_acid_disposal"][0],
             estimated_cdr=inputs["annual_co2_produced"][0],
-            base_added_seawater_max_power=inputs["based_added_seawater_max_power"][0],
+            base_added_seawater_max_power=inputs["base_added_seawater_max_power"][0],
             mass_rca=inputs["mass_rca"][0],
             annual_energy_cost=0,  # Energy costs are calculated within H2I and added to LCOC calc
         )
@@ -346,6 +389,11 @@ class OAECostAndFinancialModel(CostModelBaseClass):
         - NPV
         - Carbon Credit Value
     """
+
+    _time_step_bounds = (
+        3600,
+        3600,
+    )  # (min, max) time step lengths (in seconds) compatible with this model
 
     def initialize(self):
         super().initialize()
@@ -386,6 +434,19 @@ class OAECostAndFinancialModel(CostModelBaseClass):
             desc="Annual energy input to the OAE",
         )
         self.add_input(
+            "rated_electricity_production",
+            val=0.0,
+            units="kW",
+            desc="Rated electricity production of energy source",
+        )
+        self.add_input(
+            "electricity_capacity_factor",
+            val=0.0,
+            shape=plant_life,
+            units="unitless",
+            desc="Capacity factor of electricity source",
+        )
+        self.add_input(
             "unused_energy",
             val=0.0,
             shape=n_timesteps,
@@ -417,7 +478,7 @@ class OAECostAndFinancialModel(CostModelBaseClass):
             desc="Cost of acid disposal",
         )
         self.add_input(
-            "based_added_seawater_max_power",
+            "base_added_seawater_max_power",
             val=0.0,
             units="mol/year",
             desc="Maximum power for base added seawater per year",
@@ -441,26 +502,52 @@ class OAECostAndFinancialModel(CostModelBaseClass):
             units="USD/t",
             desc="Carbon credit value required to achieve NPV of zero",
         )
+        self.add_output(
+            "profitability_index",
+            val=0.0,
+            units="unitless",
+            desc="Profitability index for OAE plant or NPV divided by capital cost",
+        )
+        self.add_output(
+            "payback_time",
+            val=0.0,
+            units="year",
+            desc="Years needed to recover investment for OAE plant",
+        )
+        self.add_output(
+            "energy_vs_opex",
+            val=0.0,
+            units="unitless",
+            desc="Ratio of the annual energy cost to the annual OPEX",
+        )
 
     def compute(self, inputs, outputs, discrete_inputs, discrete_outputs):
         """Model assume that you only pay for the energy you use for OAE."""
-        if not inputs["annual_input_electricity"][0]:
+        if not inputs["annual_input_electricity"][0] and not (inputs["rated_electricity_production"][0] and inputs["electricity_capacity_factor"][0]):
             msg = (
                 "the annual_input_electricity needs to be connected to "
                 "an annual electricity stream in the technology_interconnections "
-                "in the plant_config."
+                "in the plant_config or rated_electricity_production and "
+                "electricity_capacity_factor need to be connected if "
+                "annual_input_electricity is not available."
             )
             raise AttributeError(msg)
-        annual_energy_cost_usd_yr = inputs["LCOE"] * (
-            inputs["annual_input_electricity"][0] - (sum(inputs["unused_energy"]))
-        )  # remove unused power from the annual energy cost only used power considered
+        if inputs["annual_input_electricity"][0]:
+            annual_energy_cost_usd_yr = inputs["LCOE"] * (
+                inputs["annual_input_electricity"][0] - (sum(inputs["unused_energy"]))
+            )  # remove unused power from the annual energy cost only used power considered
+        else:
+            annual_input_electricity = inputs["rated_electricity_production"][0] * inputs["electricity_capacity_factor"][0] * 8760
+            annual_energy_cost_usd_yr = inputs["LCOE"] * (
+                annual_input_electricity - (sum(inputs["unused_energy"]))
+            )  # remove unused power from the annual energy cost only used power considered
         costs = echem_oae.OAECosts(
             mass_product=inputs["mass_sellable_product"][0],
             value_product=inputs["value_products"][0],
             waste_mass=inputs["mass_acid_disposed"][0],
             waste_disposal_cost=inputs["cost_acid_disposal"][0],
             estimated_cdr=inputs["annual_co2_produced"][0],
-            base_added_seawater_max_power=inputs["based_added_seawater_max_power"][0],
+            base_added_seawater_max_power=inputs["base_added_seawater_max_power"][0],
             mass_rca=inputs["mass_rca"][0],
             annual_energy_cost=annual_energy_cost_usd_yr[0],
         )
@@ -472,3 +559,6 @@ class OAECostAndFinancialModel(CostModelBaseClass):
         outputs["OpEx"] = results["Annual Operating Cost ($/yr)"]
         outputs["NPV"] = results["Net Present Value (NPV) ($)"]
         outputs["carbon_credit_value"] = results["Carbon Credit Value ($/tCO2)"]
+        outputs["profitability_index"] = results["Profitability Index (PI)"]
+        outputs["payback_time"] = results["Discounted Payback Time (Years)"]
+        outputs["energy_vs_opex"] = annual_energy_cost_usd_yr/results["Annual Operating Cost ($/yr)"]
