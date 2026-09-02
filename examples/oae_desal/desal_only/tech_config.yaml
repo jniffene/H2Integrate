@@ -1,0 +1,28 @@
+name: technology_config
+description: This plant produces electricity from tidal
+technologies:    
+  grid_buy:
+      performance_model:
+        model: GridPerformanceModel
+      cost_model:
+        model: GridCostModel
+      model_inputs:
+        shared_parameters:
+          interconnection_size: 1.e6  # kW
+        cost_parameters:
+          cost_year: 2024
+          electricity_buy_price: 0.22  # $/kWh - only buying, no selling
+          interconnection_capex_per_kw: 0.0  # $/kW capital cost
+          interconnection_opex_per_kw: 0.0  # $/kW/year O&M cost
+          fixed_interconnection_cost: 0.0  # $ one-time fixed cost 
+  desalination:
+    performance_model:
+      model: ReverseOsmosisPerformanceModel
+    cost_model:
+      model: ReverseOsmosisCostModel
+    shared_parameters:
+      freshwater_kg_per_hour: 7862614 # kg/hr
+    performance_parameters:
+      salinity: "seawater" # options are "seawater", "brackish", and new "seawater_oae"
+
+
