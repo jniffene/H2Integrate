@@ -2,3 +2,50 @@ name: driver_config
 description: This analysis runs a tidal power plant
 general:
   folder_output: outputs
+
+driver:
+  design_of_experiments:
+    flag: false
+    debug_print: true
+    generator: csvgen
+    filename: input_cases.csv
+  optimization:
+    flag: false
+    tol: 0.1
+    max_iter: 100
+    solver: COBYLA
+    rhobeg: 5.
+    debug_print: True
+###### Design Variables
+design_variables:
+  tidal:
+    rotor_radius:
+      flag: false
+      lower: 10 # m
+      upper: 30 # m
+      units: m
+    device_rating:
+      flag: false
+      lower: 2000 # kW
+      upper: 6000 # kW
+      units: kW
+    num_devices:
+      flag: false
+      lower: 35
+      upper: 65
+      units: unitless
+
+#### Objective
+objective:
+  name: oae.carbon_credit_value
+#   # Objective options
+#   # finance_subgroup_electricity.LCOE for tidal
+#   # finance_subgroup_oae_profast.LCOC
+#   # oae.carbon_credit_value
+recorder:
+  file: cases.sql
+  overwrite_recorder: true
+  flag: true
+  includes: ['*']
+  # excludes: ['*resource_data']
+
