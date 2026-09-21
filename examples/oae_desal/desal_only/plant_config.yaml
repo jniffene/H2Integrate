@@ -11,7 +11,7 @@ sites:
 # and not connected to additional technologies.
 # hence the empty array.
 technology_interconnections:
-  - [tidal, oae, electricity, cable]
+  - [grid_buy, desalination, electricity, cable]
   - [finance_subgroup_electricity, oae, LCOE]
   - [tidal, oae, [annual_electricity_produced, annual_input_electricity]]
 
