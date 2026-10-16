@@ -1,0 +1,16 @@
+name: technology_config
+description: Reverse-osmosis desalination with grid electricity purchases
+technologies:
+  desalination:
+    performance_model:
+      model: ReverseOsmosisPerformanceModel
+    model_inputs:
+      performance_parameters:
+        freshwater_kg_per_hour: 10000
+        salinity: seawater
+  grid_buy:
+    performance_model:
+      model: GridPerformanceModel
+    model_inputs:
+      shared_parameters:
+        interconnection_size: 1000.0

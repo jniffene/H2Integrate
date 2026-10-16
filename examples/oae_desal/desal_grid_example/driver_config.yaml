@@ -1,0 +1,4 @@
+name: driver_config
+description: Run the desalination and grid example without optimization
+general:
+  folder_output: outputs

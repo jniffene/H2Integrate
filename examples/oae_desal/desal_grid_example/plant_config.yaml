@@ -1,0 +1,9 @@
+name: plant_config
+description: Simple reverse-osmosis desalination plant supplied by grid electricity
+plant:
+  plant_life: 1
+  simulation:
+    n_timesteps: 8760
+technology_interconnections:
+  # Repeat the scalar desalination demand across each hourly grid command.
+  - [desalination, grid_buy, ["electricity_in[0]", "electricity_set_point[0:8760]"]]
