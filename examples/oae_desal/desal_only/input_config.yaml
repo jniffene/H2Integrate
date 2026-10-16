@@ -1,5 +1,5 @@
 name: H2Integrate_config
-system_summary: Desalination plant combined with OAE
+system_summary: Desalination plant powered with grid electricity
 driver_config: driver_config.yaml
 technology_config: tech_config.yaml
 plant_config: plant_config.yaml
