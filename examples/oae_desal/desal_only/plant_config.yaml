@@ -12,7 +12,7 @@ sites:
 # hence the empty array.
 technology_interconnections:
   # - [desalination, grid_buy, electricity, cable]
-  - [desalination, grid_buy, [electricity_in[0], electricity_set_point[0:8760]]]
+  - [desalination, grid_buy, ["electricity_in[0]", "electricity_set_point[0:8760]"]]
   # - [finance_subgroup_electricity, oae, LCOE]
   # - [tidal, oae, [annual_electricity_produced, annual_input_electricity]]
 
