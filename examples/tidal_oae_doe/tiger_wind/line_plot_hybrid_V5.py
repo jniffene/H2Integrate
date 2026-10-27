@@ -104,8 +104,8 @@ for i in range(len(sens_vars)*3):
 
 # Plot key results for the cases
 keyResults = ["lcoe", "becc"]
-keyFullNames = ["LCOE ($/kWh)", r"Break-Even Carbon Credit Cost (\$/tCO$_2$)"]
-keyNames = ["LCOE", "Break-Even Carbon Credit Cost\n"]
+keyFullNames = ["LCOE ($/kWh)", r"LCOC (\$/tCO$_2$)"]
+keyNames = ["LCOE", "LCOC"]
 
 # Define consistent legend
 capsLegend = [""] * len(baseDict["capacities"])
@@ -162,5 +162,5 @@ for k in range(len(keyResults)):
         plt.plot(np.multiply(rotor_radii,2), keyVals_wind_CookInlet[:,k], color='grey', linestyle='-')
         # plt.plot(np.multiply(rotor_radii,2), keyVals_wind_ToksookBay[:,k], color='dimgrey', linestyle='-')
         # plt.show()
-        plt.savefig(f"{turbine}_{keyResults[k]}_hybrid_30-50-70_wind_3cap_V4.png", dpi = 300, bbox_inches='tight')
+        plt.savefig(f"{turbine}_{keyResults[k]}_hybrid_30-50-70_wind_3cap_V5.png", dpi = 300, bbox_inches='tight')
         plt.close()
