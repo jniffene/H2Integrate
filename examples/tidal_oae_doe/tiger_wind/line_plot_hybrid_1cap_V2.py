@@ -89,8 +89,8 @@ for i in range(len(sens_vars)*3):
 
 # Plot key results for the cases
 keyResults = ["lcoe", "becc"]
-keyFullNames = ["LCOE ($/kWh)", r"Break-Even Carbon Credit Cost (\$/tCO$_2$)"]
-keyNames = ["LCOE", "Break-Even Carbon Credit Cost\n"]
+keyFullNames = ["LCOE ($/kWh)", r"LCOC (\$/tCO$_2$)"]
+keyNames = ["LCOE", "LCOC"]
 
 # Ensure colors are consistent
 cmap = plt.colormaps['tab10']
@@ -139,5 +139,5 @@ for k in range(len(keyResults)):
         plt.grid(which='major', linestyle='-', linewidth='0.8', color='darkgray')
         plt.plot(np.multiply(rotor_radii,2), keyVals_wind_CookInlet[:,k], color='grey', linestyle='-')
         # plt.show()
-        plt.savefig(f"{turbine}_{keyResults[k]}_hybrid_30-50-70_wind_1cap_3,4MW_V2.png", dpi = 300, bbox_inches='tight')
+        plt.savefig(f"{turbine}_{keyResults[k]}_hybrid_30-50-70_wind_1cap_3,4MW_V3.png", dpi = 300, bbox_inches='tight')
         plt.close()
